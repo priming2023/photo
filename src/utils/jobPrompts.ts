@@ -1,57 +1,55 @@
 /**
- * 나이대별 정밀 시각 묘사
+ * 나이대별 시각 묘사
  *
- * 심리학·의학적 노화 연구 기반:
- * - 피부 텍스처, 주름 위치, 모발 변화, 눈·입 주변 변화를 구체적으로 묘사
- * - 한국인 노화 특성을 반영 (피부톤, 얼굴 윤곽)
+ * 한국인 노화 특성 기반:
+ * - 한국인은 서양인보다 체감 나이가 5~7세 젊어 보이는 경향
+ * - 과도한 주름·백발 묘사 금지 → 실제 그 나이처럼 보이도록 자연스럽게
+ * - "healthy", "vibrant", "natural aging" 키워드로 과노화 방지
  */
 export const AGE_DESCRIPTORS: Record<number, string> = {
   25: [
     'looks exactly 25 years old',
-    'smooth youthful skin with no wrinkles',
-    'bright clear eyes with tight under-eye area',
-    'firm jawline and cheeks',
-    'natural healthy complexion',
-    'energetic and fresh appearance',
+    'smooth clear skin with no visible wrinkles',
+    'bright youthful eyes',
+    'firm jawline',
+    'fresh healthy complexion',
+    'energetic appearance',
   ].join(', '),
 
   35: [
     'looks exactly 35 years old',
-    'mature adult face with subtle early fine lines at outer eye corners',
-    'slightly more defined nasolabial folds',
-    'confident professional expression',
-    'fuller more defined facial features',
-    'natural mature skin with slight texture',
+    'healthy mature skin with minimal fine lines',
+    'subtle smile lines only at eye corners',
+    'confident professional appearance',
+    'naturally defined facial features',
+    'vibrant healthy complexion',
   ].join(', '),
 
   45: [
     'looks exactly 45 years old',
-    'middle-aged face with visible crow\'s feet wrinkles around eyes',
-    'moderate nasolabial folds from nose to mouth corners',
-    'distinguished mature appearance',
-    'a few natural gray hairs at the temples',
-    'slight loosening of the jaw contour',
-    'experienced wise expression',
+    'natural middle-aged appearance with light crow\'s feet around eyes',
+    'gentle smile lines from nose to mouth',
+    'healthy mature skin, mostly dark hair with slight graying at temples',
+    'confident distinguished look',
+    'active and healthy 45-year-old appearance',
   ].join(', '),
 
   55: [
     'looks exactly 55 years old',
-    'prominent facial wrinkles especially around eyes and forehead',
-    'deep nasolabial folds and marionette lines',
-    'silver-gray streaks throughout the hair',
-    'noticeable skin texture and age spots',
-    'slight facial sagging at cheeks and jaw',
-    'wise dignified demeanor',
+    'naturally aged but healthy and vibrant appearance',
+    'moderate natural smile lines and eye wrinkles only',
+    'salt-and-pepper hair or dark hair with some gray, well-groomed',
+    'healthy glowing skin, NOT excessively wrinkled',
+    'dignified active 55-year-old, looks fit and well',
   ].join(', '),
 
   65: [
     'looks exactly 65 years old',
-    'deep facial wrinkles across forehead and around eyes and mouth',
-    'mostly white or silver hair',
-    'significant facial sagging at cheeks and neck',
-    'visible age spots and mature skin texture',
-    'kind wise elder expression',
-    'distinguished elderly appearance',
+    'natural graceful aging, healthy and dignified appearance',
+    'visible but moderate natural wrinkles around eyes and mouth only',
+    'silver or dark gray well-kept hair',
+    'healthy mature skin with good tone, NOT heavily sagging',
+    'kind wise expression, active healthy elder, does NOT look elderly or frail',
   ].join(', '),
 };
 
