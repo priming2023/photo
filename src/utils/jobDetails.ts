@@ -162,11 +162,9 @@ export const JOB_PROMPTS: Record<string, string> = {
     'warm moody creative studio lighting on face, colorful design work and monitor in background, ' +
     'creative inspired imaginative confident expression',
 
-  // 작가 ────────────────────────────────────────────────────────────────────
-  // E방안: 안경 얼굴에 → 얼굴 레벨 핵심, 책/만년필 가슴까지 올림
+  // 작가 — 안경은 참조 사진·eyewear 프롬프트가 담당 (억지 추가 금지)
   '작가':
     'wearing comfortable sophisticated casual literary clothing, ' +
-    'elegant reading glasses on face — key face-level identifier, ' +
     'holding an open book or fountain pen raised to chest level, thoughtful introspective pose, ' +
     'warm amber desk lamp lighting creating a cozy soft glow on face, ' +
     'tall bookshelves with Korean and world literature books in background, ' +

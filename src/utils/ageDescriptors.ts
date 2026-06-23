@@ -127,30 +127,40 @@ const NEGATIVE_BASE = [
   'multiple people, duplicate faces',
   'western caucasian features, non-Korean',
   'different person, wrong face, identity mismatch, stranger, celebrity',
-  'earrings, jewelry, piercings, added accessories',
+  'earrings, jewelry, piercings, added earrings, added jewelry',
   'plastic skin, waxy skin, airbrushed, doll-like, oversaturated, over-sharpened',
   'fake, artificial, uncanny valley, mannequin',
 ].join(', ');
 
-export const buildNegativePrompt = (ageStr: string, gender?: string): string => {
+export const buildNegativePrompt = (
+  ageStr: string,
+  gender?: string,
+  eyewearNegative?: string,
+): string => {
   const age = parseAgeNumber(ageStr);
   const tooYoung = gender === '여자'
     ? 'looks 20s or 30s, youthful glowing skin, no wrinkles, dark hair only, too young for age, beautiful young woman'
     : 'looks 30s or 40s, too young for age, youthful smooth face';
 
+  let result: string;
+
   if (age <= 30) {
-    return NEGATIVE_BASE + ', wrinkles, gray hair, aged skin, middle-aged';
+    result = NEGATIVE_BASE + ', wrinkles, gray hair, aged skin, middle-aged';
+  } else if (age <= 40) {
+    result = NEGATIVE_BASE + ', heavy wrinkles, gray hair, elderly appearance';
+  } else if (age <= 50) {
+    result = NEGATIVE_BASE + ', elderly, deep wrinkles, mostly white hair, ' + tooYoung;
+  } else if (age <= 60) {
+    result = NEGATIVE_BASE + ', extremely old 80 years, frail, ' + tooYoung;
+  } else {
+    result = NEGATIVE_BASE + ', extremely old 90 years, decrepit, ' + tooYoung;
   }
-  if (age <= 40) {
-    return NEGATIVE_BASE + ', heavy wrinkles, gray hair, elderly appearance';
+
+  if (eyewearNegative) {
+    result += ', ' + eyewearNegative;
   }
-  if (age <= 50) {
-    return NEGATIVE_BASE + ', elderly, deep wrinkles, mostly white hair, ' + tooYoung;
-  }
-  if (age <= 60) {
-    return NEGATIVE_BASE + ', extremely old 80 years, frail, ' + tooYoung;
-  }
-  return NEGATIVE_BASE + ', extremely old 90 years, decrepit, ' + tooYoung;
+
+  return result;
 };
 
 export const NEGATIVE_PROMPT = buildNegativePrompt('35살');

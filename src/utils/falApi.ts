@@ -1,6 +1,7 @@
 import { buildPulidPrompt, buildNegativePrompt, getPulidParams } from './jobPrompts';
 import { uploadToFalCdn } from './falCdnUpload';
 import { cropToPortrait } from './imagePreprocess';
+import { detectEyewear, getEyewearNegative } from './eyewearDetection';
 
 const PULID_ENDPOINT = 'https://fal.run/fal-ai/flux-pulid';
 const TIMEOUT_MS     = 120_000;
@@ -74,9 +75,13 @@ export const generateTransformedImage = async (
       : `data:image/jpeg;base64,${processedImage}`;
   }
 
-  // 3. flux-pulid 변환
-  const prompt         = buildPulidPrompt(job, ageStr, gender);
-  const negativePrompt = buildNegativePrompt(ageStr, gender);
+  // 3. 안경 착용 여부 감지 → 프롬프트 분기
+  const eyewear = await detectEyewear(processedImage);
+  console.log(`[Fal] 안경 감지: ${eyewear === 'wearing' ? '착용' : eyewear === 'not_wearing' ? '미착용' : '불확실(참조 따름)'}`);
+
+  // 4. flux-pulid 변환
+  const prompt         = buildPulidPrompt(job, ageStr, gender, eyewear);
+  const negativePrompt = buildNegativePrompt(ageStr, gender, getEyewearNegative(eyewear));
   // 나이·성별별 파라미터 — 젊으면 얼굴 고정, 나이 많으면 노화 표현 허용
   // 여성은 동안 경향이 강해 더 강하게 노화, 남성은 65세 살짝 젊게
   const { id_weight, start_step, guidance_scale } = getPulidParams(ageStr, gender);

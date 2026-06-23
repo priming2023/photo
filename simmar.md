@@ -233,6 +233,14 @@ VITE_PUBLIC_APP_URL=https://phto-orcin.vercel.app
 2. Vercel에 `VITE_PUBLIC_APP_URL` 설정 확인
 3. Supabase `photo_sessions` INSERT 권한·`original_url` 컬럼 확인
 
+### 안경(eyewear) 보존
+
+- `eyewearDetection.ts` — 촬영 사진에서 안경 착용 여부 자동 감지
+- **착용**: 참조와 동일한 안경테 유지 프롬프트 + 안경 제거 네거티브
+- **미착용**: 안경 추가 금지 프롬프트 + 안경류 네거티브
+- **불확실**: 참조 사진 그대로 따름 (억지 분기 없음)
+- 작가 직업 프롬프트에서 억지 `reading glasses` 제거 (참조·감지 결과가 담당)
+
 ---
 
 ## 10. 참고 링크
