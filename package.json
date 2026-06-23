@@ -11,7 +11,8 @@
     "preview": "vite preview",
     "electron:dev": "cross-env VITE_DEV_SERVER_URL=http://localhost:5173 electron .",
     "electron:start": "concurrently -k \"npm run dev\" \"wait-on http://localhost:5173 && npm run electron:dev\"",
-    "electron:build": "npm run build && electron-builder"
+    "electron:build": "npm run build && electron-builder",
+    "deploy": "bash tool/vercel_deploy.sh"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.43.4",
@@ -40,5 +41,24 @@
     "typescript": "^5.2.2",
     "vite": "^5.3.4",
     "wait-on": "^7.2.0"
+  },
+  "build": {
+    "appId": "com.worldking.photo",
+    "productName": "월드킹 포토부스",
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.photography"
+    },
+    "win": {
+      "target": "nsis"
+    }
   }
 }
