@@ -1,4 +1,4 @@
-import { buildPulidPrompt, buildNegativePrompt } from './jobPrompts';
+import { buildPulidPrompt, buildNegativePrompt, getPulidParams } from './jobPrompts';
 import { uploadToFalCdn } from './falCdnUpload';
 import { cropToPortrait } from './imagePreprocess';
 
@@ -33,8 +33,8 @@ const parseFalError = (status: number, body: string): string => {
  *     - start_step: 4  — PuLID 공식 권장값 (realistic images)
  *       step 0~3: 텍스트 프롬프트(직업·나이)로 자유 생성
  *       step 4~: 얼굴 ID 주입 → 얼굴 보존과 변환이 동시에 달성
- *     - id_weight: 0.92 — 참조 얼굴 유사도 강화
- *     - start_step: 3  — 얼굴 ID를 더 일찍 주입
+ *     - id_weight / start_step: 나이별 동적 (getPulidParams)
+ *       젊을수록 얼굴 고정, 나이 많을수록 노화 표현 허용
  *     - 동적 네거티브 프롬프트 — 나이별 과노화 방지
  */
 export const generateTransformedImage = async (
@@ -76,7 +76,10 @@ export const generateTransformedImage = async (
   // 3. flux-pulid 변환
   const prompt         = buildPulidPrompt(job, ageStr, gender);
   const negativePrompt = buildNegativePrompt(ageStr);
+  // 나이별 파라미터 — 젊으면 얼굴 고정, 나이 많으면 노화 표현 허용
+  const { id_weight, start_step } = getPulidParams(ageStr);
   console.log('[Fal] 프롬프트 앞부분:', prompt.slice(0, 100));
+  console.log(`[Fal] 나이별 파라미터: id_weight=${id_weight}, start_step=${start_step}`);
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
@@ -98,12 +101,13 @@ export const generateTransformedImage = async (
         image_size: 'landscape_4_3',
         num_inference_steps: 28,
         guidance_scale: 3.5,
-        // id_weight 0.92: 참조 얼굴 유사도 강화 (0.85→0.92)
-        //   귀걸이·다른 사람처럼 보이는 현상 감소, 나이·직업 변환은 약간 유지
-        id_weight: 0.92,
-        // start_step 3: ID 주입을 조금 더 일찍 (4→3)
-        //   초반에 얼굴 구조가 먼저 고정되어 닮음 향상
-        start_step: 3,
+        // ──────────────────────────────────────────────────────────────
+        // id_weight / start_step: 나이별 동적 적용 (getPulidParams)
+        //   젊은 나이(25/35): id_weight↑ start_step↓ → 얼굴 강하게 고정
+        //   많은 나이(55/65): id_weight↓ start_step↑ → 노화가 표현되도록 편집 허용
+        //   (이전 고정값 0.92/3 → 65세도 젊은 얼굴이 고정되어 노화 안 됨)
+        id_weight,
+        start_step,
         true_cfg: 1,
         negative_prompt: negativePrompt,
         max_sequence_length: '256',

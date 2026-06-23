@@ -18,7 +18,9 @@ export {
   buildNegativePrompt,
   NEGATIVE_PROMPT,
   getGenderAgeStyle,
+  getPulidParams,
 } from './ageDescriptors';
+export type { PulidParams } from './ageDescriptors';
 
 export { JOB_PROMPTS } from './jobDetails';
 

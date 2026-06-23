@@ -37,43 +37,74 @@ export const AGE_DESCRIPTORS: Record<number, string> = {
   ].join(', '),
 
   // 45살 ─────────────────────────────────────────────────────────────────────
-  // 핵심: 한국 45세는 서양인 37세 수준, 주름 거의 없음
-  // "noticeable wrinkles" 완전 금지 → 성숙함은 눈빛과 표정으로만 표현
+  // 임상: 40대 눈가 주름 면적 60, 팔자 29 — 눈에 띄기 시작하나 깊지 않음
+  // 한국 45세는 서양인 40세 수준 (약간 젊어 보임)
   45: [
-    'looks exactly 45 years old',
-    'healthy mature Korean appearance, well-maintained smooth skin',
-    'barely visible fine lines at outer eye corners only when smiling — NOT prominent',
-    'smooth forehead with no deep lines, nasolabial folds very faint and subtle',
-    'full healthy cheeks with good skin elasticity',
-    'mostly dark hair with ONLY 2-3 natural gray strands at temples, crown fully dark',
-    'confident distinguished mature look, active and healthy, absolutely NOT middle-aged looking',
+    'clearly looks 45 years old, a middle-aged adult (NOT young, NOT in 30s)',
+    'mature Korean adult face with visible signs of being in mid-forties',
+    'visible fine crow\'s feet at outer eye corners, noticeable when neutral',
+    'light but clearly present nasolabial folds (smile lines from nose to mouth)',
+    'a few faint horizontal forehead lines, mild under-eye area',
+    'slightly less plump cheeks than youth, healthy skin elasticity',
+    'dark hair with a noticeable scattering of gray strands at temples and sideburns',
+    'confident settled middle-aged look, mature and established',
   ].join(', '),
 
   // 55살 ─────────────────────────────────────────────────────────────────────
-  // 자연스러운 노화, 건강하고 활기찬 모습. 서양인 45세 수준
+  // 임상: 50대 눈가 주름 73, 팔자 38, 미간 26 — 뚜렷한 주름 단계
+  // 60% 이상이 "눈꼬리 부채형 옅은 주름" 보유. 서양인 50세 수준
   55: [
-    'looks exactly 55 years old',
-    'naturally aged but vibrant healthy Korean appearance',
-    'light crow\'s feet at outer eye corners only — subtle, not deep',
-    'gentle smile lines, mild nasolabial folds — not extreme',
-    'healthy skin with natural mature texture, NOT sagging',
-    'salt-and-pepper hair: dark base with visible gray at temples and sides, crown still mostly dark',
-    'fit active 55-year-old, full of vitality, looks noticeably younger than actual age',
-    'wise confident smile, absolutely NOT frail or elderly-looking',
+    'clearly looks 55 years old, an older middle-aged Korean adult (NOT young)',
+    'evident facial aging appropriate for mid-fifties',
+    'distinct fan-shaped crow\'s feet wrinkles spreading from outer eye corners',
+    'clearly visible nasolabial folds and developing marionette lines around mouth',
+    'visible horizontal forehead lines and glabellar (frown) lines between brows',
+    'mild under-eye bags and slight cheek volume loss, softening jawline',
+    'a few small age spots / pigmentation on cheeks, skin texture less smooth',
+    'prominent salt-and-pepper hair: roughly half gray, gray heavy at temples and sides',
+    'dignified healthy older adult, wise and experienced, NOT frail',
   ].join(', '),
 
   // 65살 ─────────────────────────────────────────────────────────────────────
-  // 한국인 특유의 품위 있는 노화. 서양인 55세 수준
+  // 임상: 60대 눈가 85, 팔자 43, 미간 32 — 90%가 "부채형 깊은 주름"
+  // 색소침착·처짐(이중턱, 둥근 턱선) 두드러짐. 흰머리 우세. 서양인 60세 수준
   65: [
-    'looks exactly 65 years old',
-    'graceful dignified Korean aging, healthy and distinguished',
-    'moderate natural wrinkles around eyes and smile area — NOT deep creases',
-    'gentle relaxed facial contour, skin slightly softer but NOT heavily sagging',
-    'distinguished silver-gray hair neatly styled, silver primarily at temples and crown',
-    'warm healthy skin tone, natural mature Korean complexion',
-    'kind wise expression, active and healthy elder, NOT frail or sick',
-    'respected distinguished 65-year-old, looks energetic and well',
+    'unmistakably looks 65 years old, a Korean senior / elderly person (clearly NOT middle-aged)',
+    'clear elderly facial aging appropriate for mid-sixties',
+    'deep fan-shaped crow\'s feet wrinkles, pronounced wrinkles around eyes',
+    'deep prominent nasolabial folds and marionette lines, wrinkles around lips and mouth corners',
+    'visible forehead wrinkles, glabellar frown lines, under-eye wrinkles and eye bags',
+    'noticeable age spots and pigmentation on cheeks and forehead, weathered mature skin texture',
+    'sagging cheeks with descended fat pads, softer rounded jawline, slight double chin and jowls',
+    'predominantly gray and silver hair (mostly gray, sparse dark strands), thinner hairline',
+    'slightly lower skin brightness with warmer yellow undertone, natural elderly Korean complexion',
+    'kind wise dignified senior expression, healthy and active elder, NOT sick or frail',
   ].join(', '),
+};
+
+// ─── 나이별 PuLID 파라미터 ───────────────────────────────────────────────────
+// PuLID 공식: start_step↑ / id_weight↓ → 편집(노화) 자유도↑, 얼굴 고정↓
+//
+// 핵심 전략: 젊은 나이 = 얼굴 강하게 고정(노화 불필요)
+//           나이 많을수록 = 노화가 표현되도록 편집 여지 확대
+//   (이전엔 전 연령 id_weight 0.92/start_step 3 → 65세도 젊은 얼굴 고정되어 노화 안 됨)
+export interface PulidParams {
+  id_weight: number;
+  start_step: number;
+}
+
+export const getPulidParams = (ageStr: string): PulidParams => {
+  const age = parseAgeNumber(ageStr);
+  const snapped = snapAge(age);
+
+  switch (snapped) {
+    case 25: return { id_weight: 0.95, start_step: 2 }; // 최대 닮음, 노화 0
+    case 35: return { id_weight: 0.90, start_step: 3 }; // 거의 닮음, 약한 변화
+    case 45: return { id_weight: 0.82, start_step: 3 }; // 중간 — 중년 변화 허용
+    case 55: return { id_weight: 0.74, start_step: 4 }; // 노화 표현 우선
+    case 65: return { id_weight: 0.66, start_step: 5 }; // 강한 노화 — 편집 자유도 최대
+    default: return { id_weight: 0.85, start_step: 3 };
+  }
 };
 
 /** 가장 가까운 나이 키로 매핑 (25/35/45/55/65) */
@@ -139,23 +170,29 @@ export const buildNegativePrompt = (ageStr: string): string => {
     ].join(', ');
   }
   if (age <= 50) {
+    // 45세: 중년 변화는 허용, 노인급만 차단
     return NEGATIVE_BASE + ', ' + [
-      'excessive deep wrinkles, heavily wrinkled face, prominent forehead creases',
-      'mostly gray or white hair, heavily aged skin, deep nasolabial folds',
-      'elderly appearance, frail or weak-looking, 60 or 70 years old appearance',
+      'heavily wrinkled elderly face, deep furrowed wrinkles all over',
+      'mostly gray or white hair, sagging jowls',
+      'elderly senior appearance, frail or weak-looking, 60 or 70 years old appearance',
+      'youthful 20s or 30s flawless skin with no aging signs',
     ].join(', ');
   }
   if (age <= 60) {
+    // 55세: 뚜렷한 노화 허용, 80세급 극단만 차단
     return NEGATIVE_BASE + ', ' + [
-      'extremely aged, deeply furrowed wrinkles, 70 or 80 years old appearance',
-      'fully white hair all over, heavy facial sagging, prominent jowls',
-      'frail elderly, weak or sick looking, very old appearance',
+      'extremely aged 70 or 80 years old appearance, deeply furrowed deep canyon wrinkles',
+      'fully white hair all over, severe heavy facial sagging, large drooping jowls',
+      'frail weak or sick looking, decrepit very old appearance',
+      'youthful smooth wrinkle-free 30s skin, looks too young for age',
     ].join(', ');
   }
+  // 65세: 60대 노화 충분히 허용, 80~100세 초고령·병약만 차단
   return NEGATIVE_BASE + ', ' + [
-    'extremely old, 80 or 90 years old appearance, 100 year old',
-    'deeply furrowed wrinkles, severe facial sagging, frail or decrepit',
-    'senile or very sick appearance, extremely frail, bedridden appearance',
+    'extremely old 80 or 90 or 100 years old appearance',
+    'severe canyon-deep furrowed wrinkles, extreme facial collapse, severe sagging',
+    'frail decrepit, senile or very sick appearance, extremely frail, bedridden appearance',
+    'youthful middle-aged 40s look, too young for age, smooth wrinkle-free skin',
   ].join(', ');
 };
 
