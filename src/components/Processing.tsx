@@ -16,39 +16,37 @@ const Processing: React.FC<ProcessingProps> = ({ job, age, gender, originalImage
   useEffect(() => {
     let isComponentMounted = true;
     
-    // 단순 시간 기반 애니메이션이 아닌, 실제 API 통신을 기다리며 프로그레스바를 올립니다.
     const runAI = async () => {
-      // 텍스트 변환 타이머
-      const timer1 = setTimeout(() => { if(isComponentMounted) setMessage(`멋진 ${age} ${job}의 모습으로...`); }, 1500);
-      const timer2 = setTimeout(() => { if(isComponentMounted) setMessage('조금만 더 기다려주세요! ✨'); }, 3500);
-      const timer3 = setTimeout(() => { if(isComponentMounted) setMessage('거의 다 완성되었어요!'); }, 6000);
+      const timer1 = setTimeout(() => { if (isComponentMounted) setMessage(`멋진 ${age} ${job}의 모습으로 변신 중...`); }, 2000);
+      const timer2 = setTimeout(() => { if (isComponentMounted) setMessage('옷과 배경을 입히고 있어요 👔'); }, 5000);
+      const timer3 = setTimeout(() => { if (isComponentMounted) setMessage('얼굴은 그대로, 나이만 바꾸는 중이에요 ✨'); }, 10000);
+      const timer4 = setTimeout(() => { if (isComponentMounted) setMessage('거의 다 완성되었어요!'); }, 18000);
       
-      // 가짜 프로그레스 바 전진 (최대 95%까지만)
       const interval = setInterval(() => {
-        setProgress(p => (p < 95 ? p + 1 : p));
-      }, 80);
+        setProgress((p) => (p < 95 ? p + 1 : p));
+      }, 120);
 
       try {
-        // 실제 API 통신 (키가 없으면 유틸 내부에서 5초 딜레이 후 빈 문자열 반환)
         const resultUrl = await generateTransformedImage(originalImage, job, age, gender);
         
         if (isComponentMounted) {
           setProgress(100);
           clearInterval(interval);
-          // 100% 채운 후 화면 넘김
+          setMessage(resultUrl ? '완성! 🎉' : '기본 필터로 보여드릴게요');
           setTimeout(() => onFinish(resultUrl), 500);
         }
       } catch (error) {
-        console.error("처리 중 에러 발생", error);
-        // 에러가 나도 진행할 수 있도록 원본 빈값 전달
+        console.error('처리 중 에러 발생', error);
         if (isComponentMounted) {
           setProgress(100);
-          setTimeout(() => onFinish(""), 500);
+          setMessage('AI 연결이 어려워요. 원본 사진으로 보여드릴게요 🙏');
+          setTimeout(() => onFinish(''), 1200);
         }
       } finally {
         clearTimeout(timer1);
         clearTimeout(timer2);
         clearTimeout(timer3);
+        clearTimeout(timer4);
         clearInterval(interval);
       }
     };
