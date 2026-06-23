@@ -27,3 +27,9 @@ DROP POLICY IF EXISTS "Anon upload photos" ON storage.objects;
 CREATE POLICY "Anon upload photos"
 ON storage.objects FOR INSERT
 WITH CHECK (bucket_id = 'photos');
+
+-- 4) 만료 사진 파일 삭제 허용 (lazy cleanup 용)
+DROP POLICY IF EXISTS "Anon delete photos" ON storage.objects;
+CREATE POLICY "Anon delete photos"
+ON storage.objects FOR DELETE
+USING (bucket_id = 'photos');

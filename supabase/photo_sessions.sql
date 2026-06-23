@@ -30,6 +30,12 @@ CREATE POLICY "Anon insert photo_sessions"
 ON photo_sessions FOR INSERT
 WITH CHECK (true);
 
+-- 5) 만료 세션 삭제 허용 (lazy cleanup: 새 사진 저장 시 만료분 자동 정리)
+DROP POLICY IF EXISTS "Anon delete expired photo_sessions" ON photo_sessions;
+CREATE POLICY "Anon delete expired photo_sessions"
+ON photo_sessions FOR DELETE
+USING (expires_at < NOW());
+
 -- 5) 만료된 세션 조회용 뷰 (선택적)
 CREATE OR REPLACE VIEW active_photo_sessions AS
 SELECT * FROM photo_sessions
