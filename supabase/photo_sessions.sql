@@ -8,7 +8,8 @@
 -- 1) 세션 테이블
 CREATE TABLE IF NOT EXISTS photo_sessions (
   id          UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  transformed_url TEXT NOT NULL,          -- Supabase Storage public URL
+  original_url    TEXT,                   -- 현재의 나 (Supabase Storage)
+  transformed_url TEXT NOT NULL,          -- 미래의 나 (Supabase Storage)
   job         TEXT NOT NULL DEFAULT '',
   age         TEXT NOT NULL DEFAULT '',
   created_at  TIMESTAMPTZ DEFAULT NOW(),

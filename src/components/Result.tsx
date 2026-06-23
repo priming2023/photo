@@ -40,15 +40,22 @@ const Result: React.FC<ResultProps> = ({ originalImage, transformedImage, job, a
     let cancelled = false;
 
     const uploadAndRefreshQr = async () => {
-      // 2-a) 변환 이미지를 Supabase Storage에 업로드
-      const storageUrl = await uploadImageToSupabase(transformedImage || originalImage);
+      // 현재·미래 사진 동시 업로드 (각 ~150KB 압축)
+      const [originalStorageUrl, transformedStorageUrl] = await Promise.all([
+        uploadImageToSupabase(originalImage),
+        uploadImageToSupabase(transformedImage || originalImage),
+      ]);
       if (cancelled) return;
 
       let viewUrl: string | undefined;
 
-      if (storageUrl) {
-        // 2-b) 세션 메타데이터(직업·나이) DB 저장 → 뷰 페이지 URL 획득
-        const sessionId = await savePhotoSession(storageUrl, job, age);
+      if (transformedStorageUrl) {
+        const sessionId = await savePhotoSession(
+          transformedStorageUrl,
+          originalStorageUrl || transformedStorageUrl,
+          job,
+          age,
+        );
         if (!cancelled && sessionId) {
           viewUrl = buildViewUrl(sessionId);
           setQrUrl(viewUrl);
