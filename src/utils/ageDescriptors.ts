@@ -94,23 +94,26 @@ export interface PulidParams {
   guidance_scale: number;
 }
 
-// 여성: 동안 경향이 강해 더 강하게 노화시켜야 설정 나이로 보임
-//   → id_weight 더 낮춤 + start_step·guidance 더 높임
+// 핵심: guidance_scale은 자연스러움을 위해 낮게 유지 (높으면 AI 티/플라스틱 느낌)
+//   노화는 start_step↑(편집 자유도) + 강한 노화 묘사 프롬프트로 표현
+//
+// 여성: 동안·미화 편향이 강함 → start_step을 높여 노화 충분히 적용
+//   단 id_weight를 바닥까지 낮추면 본인이 아닌 '젊은 일반 여성'이 되므로 적정선 유지
 const FEMALE_PARAMS: Record<number, PulidParams> = {
-  25: { id_weight: 0.95, start_step: 2, guidance_scale: 3.5 },
-  35: { id_weight: 0.86, start_step: 3, guidance_scale: 3.8 },
-  45: { id_weight: 0.72, start_step: 5, guidance_scale: 4.3 },
-  55: { id_weight: 0.58, start_step: 6, guidance_scale: 5.0 },
-  65: { id_weight: 0.48, start_step: 7, guidance_scale: 5.5 }, // 가장 강한 노화
+  25: { id_weight: 0.92, start_step: 2, guidance_scale: 3.5 },
+  35: { id_weight: 0.82, start_step: 4, guidance_scale: 3.6 },
+  45: { id_weight: 0.72, start_step: 5, guidance_scale: 3.8 },
+  55: { id_weight: 0.64, start_step: 6, guidance_scale: 4.0 },
+  65: { id_weight: 0.58, start_step: 7, guidance_scale: 4.2 }, // 강한 노화 + 자연스러움
 };
 
-// 남성: 노화가 잘 표현되는 편 → 65세는 살짝 젊게(닮음↑) 조정
+// 남성: 노화가 과하게 표현되던 문제 → id_weight↑(얼굴 보존), start_step·guidance↓
 const MALE_PARAMS: Record<number, PulidParams> = {
   25: { id_weight: 0.95, start_step: 2, guidance_scale: 3.5 },
-  35: { id_weight: 0.89, start_step: 3, guidance_scale: 3.5 },
-  45: { id_weight: 0.80, start_step: 4, guidance_scale: 3.9 },
-  55: { id_weight: 0.70, start_step: 5, guidance_scale: 4.3 },
-  65: { id_weight: 0.62, start_step: 6, guidance_scale: 4.6 }, // 적당한 노화
+  35: { id_weight: 0.90, start_step: 3, guidance_scale: 3.5 },
+  45: { id_weight: 0.84, start_step: 3, guidance_scale: 3.6 },
+  55: { id_weight: 0.80, start_step: 4, guidance_scale: 3.7 },
+  65: { id_weight: 0.74, start_step: 5, guidance_scale: 3.9 }, // 적당한 노화 (과노화 방지)
 };
 
 export const getPulidParams = (ageStr: string, gender: string): PulidParams => {
@@ -155,6 +158,11 @@ const NEGATIVE_BASE = [
   'earrings, earring, ear jewelry, pierced ears, facial piercings, nose ring',
   'necklace, bracelet, added jewelry, added accessories, unrequested jewelry',
   'heavy makeup change, dramatic makeup transformation, face paint',
+  // 인공적/AI 느낌 방지 — 자연스러운 실사 사진처럼
+  'plastic skin, waxy skin, airbrushed skin, overly smooth skin, doll-like skin',
+  '3D render, CGI, video game character, digital painting, render, artificial',
+  'oversaturated, over-sharpened, excessive contrast, HDR look, glossy plastic',
+  'fake looking, computer generated, uncanny valley, mannequin',
 ].join(', ');
 
 /**
@@ -217,9 +225,10 @@ export const getGenderAgeStyle = (gender: string, age: number): string => {
   if (gender === '여자') {
     if (age <= 30) return 'trendy neat Korean hairstyle, minimal natural makeup, bare natural face, dark lustrous hair, no earrings';
     if (age <= 40) return 'professional stylish Korean hairstyle, very subtle natural makeup, fully dark hair with healthy shine, no earrings';
-    if (age <= 50) return 'sophisticated Korean professional hairstyle (neat updo or shoulder-length), light natural makeup, mostly dark hair, no earrings';
-    if (age <= 60) return 'gracefully styled Korean mature hairstyle with natural silver streaks at temples, dignified natural appearance, no earrings';
-    return 'beautifully styled silver or salt-and-pepper Korean elder hairstyle, naturally aged graceful feminine appearance, no earrings';
+    if (age <= 50) return 'sophisticated Korean hairstyle, light natural makeup, mostly dark hair, visible age-appropriate fine wrinkles, clearly a woman in her mid-forties, no earrings';
+    // 55·65: 동안 편향을 이기도록 노화를 명시적으로 강조
+    if (age <= 60) return 'mature Korean woman in her mid-fifties, salt-and-pepper hair with prominent gray, clearly visible crow\'s feet and nasolabial folds, mature aged skin texture, looks her full age, dignified, no earrings, no heavy makeup hiding age';
+    return 'elderly Korean woman in her mid-sixties, predominantly gray and silver hair, clearly visible deep wrinkles around eyes mouth and forehead, age spots, sagging mature skin, unmistakably a senior woman, looks her full age, NOT youthful, no earrings, no makeup hiding wrinkles';
   }
   // 남자
   if (age <= 30) return 'neat modern Korean male hairstyle, clean-shaven, youthful masculine appearance, dark thick hair';

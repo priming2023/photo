@@ -64,7 +64,8 @@ export const buildPulidPrompt = (
     // 5. 구도
     `Upper body landscape shot with subject's face clearly centered and prominently visible, looking directly at camera.`,
     `Natural soft portrait lighting, shallow depth of field, face in sharp focus.`,
-    // 6. 품질
-    `Photorealistic Korean portrait photography, tack-sharp face, professional studio quality.`,
+    // 6. 품질 — 자연스러운 실사 사진 (AI/플라스틱 느낌 방지)
+    `Candid realistic photograph taken on a DSLR camera, natural authentic skin texture with visible pores and fine detail.`,
+    `True-to-life natural skin tones, soft natural lighting, NOT airbrushed, NOT over-processed, looks like a real unedited photo of a real person.`,
   ].join(' ');
 };
