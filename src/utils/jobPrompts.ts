@@ -48,15 +48,18 @@ export const buildPulidPrompt = (
   const jobDetail   = JOB_PROMPTS[job] ?? 'wearing professional work attire at a matching workplace';
 
   return [
-    // 1. 직업 장면 FIRST
+    // 0. 얼굴 동일성 — PuLID 참조 사진과 같은 사람 (최우선)
+    `Exact same person as reference photo. Preserve identical face shape, eye shape, nose, lips, and facial proportions.`,
+    `Natural bare ears with no earrings. No added jewelry or accessories on face unless in reference.`,
+    // 1. 직업 장면
     `${jobDetail}.`,
     // 2. 나이 + 성별
     `${age}-year-old Korean ${genderEng}. ${ageDesc}.`,
-    // 3. 성별×나이 헤어·스타일링 (E방안: 얼굴 클로즈업에서 헤어 색상이 매우 잘 보임)
+    // 3. 성별×나이 헤어·스타일링
     `${genderStyle}.`,
     // 4. 동아시아 외모 앵커
     `East Asian Korean facial features, warm olive undertone skin, natural Asian complexion.`,
-    // 5. 구도: 가로형 상반신 — 얼굴이 프레임 중앙 상단에 위치 (landscape_4_3 출력에 최적)
+    // 5. 구도
     `Upper body landscape shot with subject's face clearly centered and prominently visible, looking directly at camera.`,
     `Natural soft portrait lighting, shallow depth of field, face in sharp focus.`,
     // 6. 품질

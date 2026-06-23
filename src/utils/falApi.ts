@@ -33,7 +33,8 @@ const parseFalError = (status: number, body: string): string => {
  *     - start_step: 4  — PuLID 공식 권장값 (realistic images)
  *       step 0~3: 텍스트 프롬프트(직업·나이)로 자유 생성
  *       step 4~: 얼굴 ID 주입 → 얼굴 보존과 변환이 동시에 달성
- *     - id_weight: 0.85 — 얼굴 보존↔변환 균형점
+ *     - id_weight: 0.92 — 참조 얼굴 유사도 강화
+ *     - start_step: 3  — 얼굴 ID를 더 일찍 주입
  *     - 동적 네거티브 프롬프트 — 나이별 과노화 방지
  */
 export const generateTransformedImage = async (
@@ -96,18 +97,13 @@ export const generateTransformedImage = async (
         // landscape_4_3(현재): 영수증에서 88% 표시 → 얼굴 자연스럽게 표시
         image_size: 'landscape_4_3',
         num_inference_steps: 28,
-        guidance_scale: 4,
-        // ──────────────────────────────────────────────────────────────
-        // id_weight 0.85: 얼굴 보존과 나이·의상 변환의 균형점
-        //   (1.0 = 완전 고정 → 나이 변환 안됨)
-        id_weight: 0.85,
-        // ──────────────────────────────────────────────────────────────
-        // start_step 4: PuLID 공식 권장값 for realistic images
-        //   step 0~3: 텍스트 프롬프트로 직업·나이 자유 생성 (editability↑)
-        //   step 4~:  얼굴 ID 주입 (identity↑)
-        //   → 직업 변환과 얼굴 보존이 동시에 잘 됨
-        //   (이전 기본값 0 = ID를 처음부터 강제 → 나이/직업 변환이 약했음)
-        start_step: 4,
+        guidance_scale: 3.5,
+        // id_weight 0.92: 참조 얼굴 유사도 강화 (0.85→0.92)
+        //   귀걸이·다른 사람처럼 보이는 현상 감소, 나이·직업 변환은 약간 유지
+        id_weight: 0.92,
+        // start_step 3: ID 주입을 조금 더 일찍 (4→3)
+        //   초반에 얼굴 구조가 먼저 고정되어 닮음 향상
+        start_step: 3,
         true_cfg: 1,
         negative_prompt: negativePrompt,
         max_sequence_length: '256',

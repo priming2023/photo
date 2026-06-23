@@ -107,6 +107,11 @@ const NEGATIVE_BASE = [
   'overly processed plastic surgery appearance, uncanny valley',
   'poorly lit, harsh shadows, overexposed, underexposed',
   'wrong gender, different person, identity mismatch',
+  'different face, changed facial features, altered eye shape, altered nose shape, altered lip shape',
+  'lookalike, twin, stranger, celebrity face, generic AI face',
+  'earrings, earring, ear jewelry, pierced ears, facial piercings, nose ring',
+  'necklace, bracelet, added jewelry, added accessories, unrequested jewelry',
+  'heavy makeup change, dramatic makeup transformation, face paint',
 ].join(', ');
 
 /**
@@ -161,11 +166,11 @@ export const NEGATIVE_PROMPT = buildNegativePrompt('35살');
 // E방안: 얼굴이 클로즈업으로 보이므로 헤어 색상·스타일이 매우 중요
 export const getGenderAgeStyle = (gender: string, age: number): string => {
   if (gender === '여자') {
-    if (age <= 30) return 'trendy neat Korean hairstyle, fresh natural youthful makeup, dark lustrous hair';
-    if (age <= 40) return 'professional stylish Korean hairstyle, refined natural makeup, fully dark hair with healthy shine';
-    if (age <= 50) return 'sophisticated Korean professional hairstyle (neat updo or shoulder-length), mature elegant makeup, mostly dark hair with barely noticeable highlights';
-    if (age <= 60) return 'gracefully styled Korean mature hairstyle with natural silver streaks at temples, dignified elegant appearance, well-maintained';
-    return 'beautifully styled silver or salt-and-pepper Korean elder hairstyle, naturally aged graceful feminine appearance, neatly groomed';
+    if (age <= 30) return 'trendy neat Korean hairstyle, minimal natural makeup, bare natural face, dark lustrous hair, no earrings';
+    if (age <= 40) return 'professional stylish Korean hairstyle, very subtle natural makeup, fully dark hair with healthy shine, no earrings';
+    if (age <= 50) return 'sophisticated Korean professional hairstyle (neat updo or shoulder-length), light natural makeup, mostly dark hair, no earrings';
+    if (age <= 60) return 'gracefully styled Korean mature hairstyle with natural silver streaks at temples, dignified natural appearance, no earrings';
+    return 'beautifully styled silver or salt-and-pepper Korean elder hairstyle, naturally aged graceful feminine appearance, no earrings';
   }
   // 남자
   if (age <= 30) return 'neat modern Korean male hairstyle, clean-shaven, youthful masculine appearance, dark thick hair';

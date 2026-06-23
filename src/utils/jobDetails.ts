@@ -30,7 +30,7 @@ export const JOB_PROMPTS: Record<string, string> = {
   // 유튜버 ──────────────────────────────────────────────────────────────────
   // E방안: 링라이트 눈 반사 → 얼굴 레벨 핵심 식별자
   '유튜버':
-    'wearing trendy Korean streetwear or casual creator outfit with distinctive accessories, ' +
+    'wearing trendy Korean streetwear or casual creator outfit, ' +
     'large LED ring light positioned directly in front — ring light reflection clearly visible in both eyes, ' +
     'professional condenser microphone positioned close to mouth at face level, ' +
     'soft warm ring light illuminating face perfectly, blurred creative studio with monitors in background, ' +
@@ -75,7 +75,7 @@ export const JOB_PROMPTS: Record<string, string> = {
   // 가수 ────────────────────────────────────────────────────────────────────
   // E방안: 마이크 입 레벨 → 얼굴 바로 옆 핵심 식별자, 무대 조명 얼굴에 직접 조사
   '가수':
-    'wearing a glamorous Korean idol performer stage outfit with bold styling and accessories, ' +
+    'wearing a glamorous Korean idol performer stage outfit with bold styling, ' +
     'holding a professional wireless microphone directly at mouth level — face-level key identifier, ' +
     'dramatic colorful stage spotlights creating rim lighting directly on face, ' +
     'stage smoke and blurred audience in background, confetti in air, ' +
@@ -156,7 +156,7 @@ export const JOB_PROMPTS: Record<string, string> = {
   // 디자이너 ────────────────────────────────────────────────────────────────
   // E방안: 태블릿 가슴/얼굴 레벨 → 가슴 레벨 핵심 식별자
   '디자이너':
-    'wearing stylish trendy Korean creative professional outfit with distinctive accessories and fashion, ' +
+    'wearing stylish trendy Korean creative professional outfit, ' +
     'holding a professional digital drawing tablet with stylus pen raised at chest-to-face level — key identifier, ' +
     'creative confident pose showing the design work on the tablet screen, ' +
     'warm moody creative studio lighting on face, colorful design work and monitor in background, ' +

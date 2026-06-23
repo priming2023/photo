@@ -24,9 +24,8 @@ export const cropToPortrait = (base64DataUrl: string): Promise<string> => {
 
       if (srcRatio > TARGET_RATIO) {
         // 가로가 더 넓음 (일반 웹캠 16:9)
-        // Method D: 상단 75%만 사용 → 허리 이하 제거, 얼굴+상반신 집중
-        // 효과: AI 입력에서 얼굴 비율이 ~1.26배 커짐 → 아이덴티티 보존·직업 표현 향상
-        const usableH = Math.round(srcH * 0.75);
+        // Method D: 상단 65%만 사용 → 얼굴 비율 더 크게 (PuLID 얼굴 인식 강화)
+        const usableH = Math.round(srcH * 0.65);
         cropH = usableH;
         cropW = Math.round(usableH * TARGET_RATIO);
         cropX = Math.round((srcW - cropW) / 2); // 수평 중앙 정렬
