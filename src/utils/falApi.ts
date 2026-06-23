@@ -82,6 +82,8 @@ export const generateTransformedImage = async (
         id_weight: 0.85,
         true_cfg: 1,
         negative_prompt: NEGATIVE_PROMPT,
+        // 256 토큰: 한국인 특화 상세 프롬프트가 잘리지 않도록 (기본값 128이면 절반 손실)
+        max_sequence_length: '256',
         enable_safety_checker: false,
       }),
     });
