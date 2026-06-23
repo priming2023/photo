@@ -94,19 +94,29 @@ export interface PulidParams {
   guidance_scale: number;
 }
 
-export const getPulidParams = (ageStr: string): PulidParams => {
-  const age = parseAgeNumber(ageStr);
-  const snapped = snapAge(age);
+// 여성: 동안 경향이 강해 더 강하게 노화시켜야 설정 나이로 보임
+//   → id_weight 더 낮춤 + start_step·guidance 더 높임
+const FEMALE_PARAMS: Record<number, PulidParams> = {
+  25: { id_weight: 0.95, start_step: 2, guidance_scale: 3.5 },
+  35: { id_weight: 0.86, start_step: 3, guidance_scale: 3.8 },
+  45: { id_weight: 0.72, start_step: 5, guidance_scale: 4.3 },
+  55: { id_weight: 0.58, start_step: 6, guidance_scale: 5.0 },
+  65: { id_weight: 0.48, start_step: 7, guidance_scale: 5.5 }, // 가장 강한 노화
+};
 
-  // guidance_scale↑ → 나이 묘사 프롬프트를 더 강하게 따름 (노화 표현 강화)
-  switch (snapped) {
-    case 25: return { id_weight: 0.95, start_step: 2, guidance_scale: 3.5 }; // 최대 닮음, 노화 0
-    case 35: return { id_weight: 0.88, start_step: 3, guidance_scale: 3.5 }; // 거의 닮음
-    case 45: return { id_weight: 0.78, start_step: 4, guidance_scale: 4.0 }; // 중년 변화
-    case 55: return { id_weight: 0.66, start_step: 5, guidance_scale: 4.5 }; // 노화 강화
-    case 65: return { id_weight: 0.56, start_step: 6, guidance_scale: 5.0 }; // 강한 노화
-    default: return { id_weight: 0.82, start_step: 4, guidance_scale: 4.0 };
-  }
+// 남성: 노화가 잘 표현되는 편 → 65세는 살짝 젊게(닮음↑) 조정
+const MALE_PARAMS: Record<number, PulidParams> = {
+  25: { id_weight: 0.95, start_step: 2, guidance_scale: 3.5 },
+  35: { id_weight: 0.89, start_step: 3, guidance_scale: 3.5 },
+  45: { id_weight: 0.80, start_step: 4, guidance_scale: 3.9 },
+  55: { id_weight: 0.70, start_step: 5, guidance_scale: 4.3 },
+  65: { id_weight: 0.62, start_step: 6, guidance_scale: 4.6 }, // 적당한 노화
+};
+
+export const getPulidParams = (ageStr: string, gender: string): PulidParams => {
+  const snapped = snapAge(parseAgeNumber(ageStr));
+  const table = gender === '여자' ? FEMALE_PARAMS : MALE_PARAMS;
+  return table[snapped] ?? { id_weight: 0.78, start_step: 4, guidance_scale: 4.0 };
 };
 
 /** 가장 가까운 나이 키로 매핑 (25/35/45/55/65) */

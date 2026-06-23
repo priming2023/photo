@@ -54,25 +54,35 @@ export const savePhotoSession = async (
 
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + 14);
+  const expires_at = expiresAt.toISOString();
 
+  // 1차: original_url 포함 저장
   try {
     const { data, error } = await supabase
       .from('photo_sessions')
-      .insert({
-        transformed_url: transformedUrl,
-        original_url: originalUrl,
-        job,
-        age,
-        expires_at: expiresAt.toISOString(),
-      })
+      .insert({ transformed_url: transformedUrl, original_url: originalUrl, job, age, expires_at })
       .select('id')
       .single();
 
     if (error) throw error;
     return data.id as string;
   } catch (err) {
-    console.error('[Session] 저장 실패:', err);
-    return null;
+    // original_url 컬럼 미생성(마이그레이션 미실행) 등으로 실패 시 →
+    // original_url 없이 재시도해 최소한 QR(미래 사진)은 동작하도록 보장
+    console.warn('[Session] original_url 포함 저장 실패, 미포함으로 재시도:', err);
+    try {
+      const { data, error } = await supabase
+        .from('photo_sessions')
+        .insert({ transformed_url: transformedUrl, job, age, expires_at })
+        .select('id')
+        .single();
+
+      if (error) throw error;
+      return data.id as string;
+    } catch (err2) {
+      console.error('[Session] 저장 최종 실패:', err2);
+      return null;
+    }
   }
 };
 

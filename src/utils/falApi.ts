@@ -76,8 +76,9 @@ export const generateTransformedImage = async (
   // 3. flux-pulid 변환
   const prompt         = buildPulidPrompt(job, ageStr, gender);
   const negativePrompt = buildNegativePrompt(ageStr);
-  // 나이별 파라미터 — 젊으면 얼굴 고정, 나이 많으면 노화 표현 허용
-  const { id_weight, start_step, guidance_scale } = getPulidParams(ageStr);
+  // 나이·성별별 파라미터 — 젊으면 얼굴 고정, 나이 많으면 노화 표현 허용
+  // 여성은 동안 경향이 강해 더 강하게 노화, 남성은 65세 살짝 젊게
+  const { id_weight, start_step, guidance_scale } = getPulidParams(ageStr, gender);
   console.log('[Fal] 프롬프트 앞부분:', prompt.slice(0, 100));
   console.log(`[Fal] 나이별 파라미터: id_weight=${id_weight}, start_step=${start_step}, guidance=${guidance_scale}`);
 
