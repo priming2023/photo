@@ -91,19 +91,21 @@ export const AGE_DESCRIPTORS: Record<number, string> = {
 export interface PulidParams {
   id_weight: number;
   start_step: number;
+  guidance_scale: number;
 }
 
 export const getPulidParams = (ageStr: string): PulidParams => {
   const age = parseAgeNumber(ageStr);
   const snapped = snapAge(age);
 
+  // guidance_scale↑ → 나이 묘사 프롬프트를 더 강하게 따름 (노화 표현 강화)
   switch (snapped) {
-    case 25: return { id_weight: 0.95, start_step: 2 }; // 최대 닮음, 노화 0
-    case 35: return { id_weight: 0.90, start_step: 3 }; // 거의 닮음, 약한 변화
-    case 45: return { id_weight: 0.82, start_step: 3 }; // 중간 — 중년 변화 허용
-    case 55: return { id_weight: 0.74, start_step: 4 }; // 노화 표현 우선
-    case 65: return { id_weight: 0.66, start_step: 5 }; // 강한 노화 — 편집 자유도 최대
-    default: return { id_weight: 0.85, start_step: 3 };
+    case 25: return { id_weight: 0.95, start_step: 2, guidance_scale: 3.5 }; // 최대 닮음, 노화 0
+    case 35: return { id_weight: 0.88, start_step: 3, guidance_scale: 3.5 }; // 거의 닮음
+    case 45: return { id_weight: 0.78, start_step: 4, guidance_scale: 4.0 }; // 중년 변화
+    case 55: return { id_weight: 0.66, start_step: 5, guidance_scale: 4.5 }; // 노화 강화
+    case 65: return { id_weight: 0.56, start_step: 6, guidance_scale: 5.0 }; // 강한 노화
+    default: return { id_weight: 0.82, start_step: 4, guidance_scale: 4.0 };
   }
 };
 

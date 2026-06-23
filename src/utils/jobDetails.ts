@@ -10,13 +10,13 @@
  */
 export const JOB_PROMPTS: Record<string, string> = {
   // 운동선수 ─────────────────────────────────────────────────────────────────
-  // E방안: 목걸이 메달 → 목 레벨, 팀 저지 → 가슴 레벨
+  // 자료: 종목 모호성 방지 → 축구 국가대표로 구체화, 메달(목)+저지(가슴)
   '운동선수':
-    'wearing a professional Korean national sports team competition uniform with bold team logo on chest, ' +
-    'gold championship medal hanging prominently around neck — key neck-level identifier, ' +
-    'victorious pose with head held high, athletic confident expression, ' +
-    'dramatic stadium floodlights shining down onto face, packed stadium cheering in background, ' +
-    'triumphant champion expression',
+    'wearing an official Korean national football team jersey in red with bold team crest on chest, ' +
+    'gold championship medal on a ribbon hanging prominently around neck — key neck-level identifier, ' +
+    'athletic muscular build, victorious pose with head held high, ' +
+    'dramatic stadium floodlights shining down onto face, packed cheering stadium crowd softly blurred behind, ' +
+    'triumphant confident champion expression',
 
   // 의사 ────────────────────────────────────────────────────────────────────
   // E방안: 청진기 목에 걸림 → 목 레벨 핵심, 흰 가운 깃 → 어깨 레벨
@@ -144,14 +144,15 @@ export const JOB_PROMPTS: Record<string, string> = {
     'clean professional airline lighting, jet bridge or cockpit background, ' +
     'authoritative calm confident professional pilot expression',
 
-  // 건축가 ──────────────────────────────────────────────────────────────────
-  // E방안: 흰 안전모 → 머리 레벨 핵심, 안전조끼 → 어깨/가슴 레벨
-  '건축가':
-    'wearing a white construction hard hat on head — THE key head-level identifier, ' +
-    'bright orange safety vest with reflective stripes over professional shirt, clearly visible on chest, ' +
-    'holding large rolled architectural blueprints raised at chest level in both hands, ' +
-    'natural bright outdoor construction site lighting, modern Korean building construction background, ' +
-    'visionary creative professional confident expression',
+  // 스튜어디스(항공 승무원) ───────────────────────────────────────────────────
+  // 자료: 대한항공 청자색+베이지 유니폼, 날개 모양 실크 스카프, 윙 배지 (지안프랑코 페레 디자인)
+  // E방안: 목 스카프 → 목 레벨 핵심, 윙 배지·명찰 → 가슴 레벨
+  '스튜어디스':
+    'wearing an authentic Korean airline flight attendant uniform in elegant celadon blue-green and soft beige tones, ' +
+    'signature wing-shaped silk scarf tied neatly at the neck — THE key neck-level identifier, ' +
+    'golden airline wing pin and crew name badge clearly on chest, neat tidy airline-regulation hairstyle, ' +
+    'standing gracefully in an airplane cabin aisle with overhead bins and passenger seats softly blurred behind, ' +
+    'warm soft cabin lighting on face, poised elegant warm welcoming professional smile',
 
   // 디자이너 ────────────────────────────────────────────────────────────────
   // E방안: 태블릿 가슴/얼굴 레벨 → 가슴 레벨 핵심 식별자

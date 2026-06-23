@@ -20,7 +20,7 @@ const JOBS = [
   { id: 'lawyer', name: '변호사', icon: '💼' },
   { id: 'vet', name: '수의사', icon: '🐶' },
   { id: 'pilot', name: '파일럿', icon: '✈️' },
-  { id: 'architect', name: '건축가', icon: '🏗️' },
+  { id: 'flight_attendant', name: '스튜어디스', icon: '🛫' },
   { id: 'designer', name: '디자이너', icon: '🎨' },
   { id: 'writer', name: '작가', icon: '✍️' },
 ];

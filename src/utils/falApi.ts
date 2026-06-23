@@ -77,9 +77,9 @@ export const generateTransformedImage = async (
   const prompt         = buildPulidPrompt(job, ageStr, gender);
   const negativePrompt = buildNegativePrompt(ageStr);
   // 나이별 파라미터 — 젊으면 얼굴 고정, 나이 많으면 노화 표현 허용
-  const { id_weight, start_step } = getPulidParams(ageStr);
+  const { id_weight, start_step, guidance_scale } = getPulidParams(ageStr);
   console.log('[Fal] 프롬프트 앞부분:', prompt.slice(0, 100));
-  console.log(`[Fal] 나이별 파라미터: id_weight=${id_weight}, start_step=${start_step}`);
+  console.log(`[Fal] 나이별 파라미터: id_weight=${id_weight}, start_step=${start_step}, guidance=${guidance_scale}`);
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
@@ -100,9 +100,9 @@ export const generateTransformedImage = async (
         // landscape_4_3(현재): 영수증에서 88% 표시 → 얼굴 자연스럽게 표시
         image_size: 'landscape_4_3',
         num_inference_steps: 28,
-        guidance_scale: 3.5,
+        guidance_scale,
         // ──────────────────────────────────────────────────────────────
-        // id_weight / start_step: 나이별 동적 적용 (getPulidParams)
+        // id_weight / start_step / guidance_scale: 나이별 동적 적용 (getPulidParams)
         //   젊은 나이(25/35): id_weight↑ start_step↓ → 얼굴 강하게 고정
         //   많은 나이(55/65): id_weight↓ start_step↑ → 노화가 표현되도록 편집 허용
         //   (이전 고정값 0.92/3 → 65세도 젊은 얼굴이 고정되어 노화 안 됨)
