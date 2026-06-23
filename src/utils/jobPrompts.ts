@@ -56,8 +56,8 @@ export const buildPulidPrompt = (
     `${genderStyle}.`,
     // 4. 동아시아 외모 앵커
     `East Asian Korean facial features, warm olive undertone skin, natural Asian complexion.`,
-    // 5. 구도: 얼굴이 상단에 크게 보이는 상반신 포트레이트
-    `Tight upper body portrait with subject's face prominently in upper frame, looking directly at camera.`,
+    // 5. 구도: 가로형 상반신 — 얼굴이 프레임 중앙 상단에 위치 (landscape_4_3 출력에 최적)
+    `Upper body landscape shot with subject's face clearly centered and prominently visible, looking directly at camera.`,
     `Natural soft portrait lighting, shallow depth of field, face in sharp focus.`,
     // 6. 품질
     `Photorealistic Korean portrait photography, tack-sharp face, professional studio quality.`,

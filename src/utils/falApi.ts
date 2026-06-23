@@ -91,7 +91,10 @@ export const generateTransformedImage = async (
       body: JSON.stringify({
         prompt,
         reference_image_url: cdnUrl,
-        image_size: 'portrait_4_3',
+        // landscape_4_3: 가로형 출력 → 영수증 박스(가로형)와 비율 일치
+        // portrait_4_3(이전): 영수증에서 49%만 표시 → 얼굴 잘림
+        // landscape_4_3(현재): 영수증에서 88% 표시 → 얼굴 자연스럽게 표시
+        image_size: 'landscape_4_3',
         num_inference_steps: 28,
         guidance_scale: 4,
         // ──────────────────────────────────────────────────────────────
