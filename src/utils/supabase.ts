@@ -5,29 +5,27 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-export const uploadImageToSupabase = async (base64Image: string): Promise<string> => {
+/** data URL 또는 http(s) URL 이미지를 Supabase photos 버킷에 업로드 */
+export const uploadImageToSupabase = async (imageSrc: string): Promise<string> => {
   if (!supabaseUrl || !supabaseAnonKey) {
     console.warn("Supabase 키가 설정되지 않았습니다.");
     return "";
   }
 
   try {
-    // Base64 문자열을 Blob 객체로 변환
-    const res = await fetch(base64Image);
+    const res = await fetch(imageSrc);
     const blob = await res.blob();
     const fileName = `photo_${Date.now()}.jpg`;
 
-    // photos 버킷에 업로드
     const { error } = await supabase.storage
       .from('photos')
       .upload(fileName, blob, {
-        contentType: 'image/jpeg',
+        contentType: blob.type || 'image/jpeg',
         upsert: false
       });
 
     if (error) throw error;
 
-    // 업로드된 파일의 Public URL 가져오기
     const { data: publicData } = supabase.storage
       .from('photos')
       .getPublicUrl(fileName);

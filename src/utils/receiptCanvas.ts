@@ -1,0 +1,213 @@
+import QRCode from 'qrcode';
+
+const PRINT_WIDTH = 495;
+const PRINT_HEIGHT = 799;
+const IMAGE_LOAD_TIMEOUT_MS = 8_000;
+
+/** 외부 URL → blob URL 변환 (캔버스 CORS 문제 방지) */
+const toCanvasSafeSrc = async (src: string): Promise<string> => {
+  if (src.startsWith('data:') || src.startsWith('blob:')) return src;
+  const res = await fetch(src);
+  if (!res.ok) throw new Error(`fetch failed: ${res.status}`);
+  const blob = await res.blob();
+  return URL.createObjectURL(blob);
+};
+
+const loadImage = async (src: string): Promise<HTMLImageElement> => {
+  let objectUrl: string | null = null;
+  let safeSrc = src;
+
+  try {
+    if (!src.startsWith('data:')) {
+      safeSrc = await toCanvasSafeSrc(src);
+      if (safeSrc.startsWith('blob:')) objectUrl = safeSrc;
+    }
+  } catch {
+    safeSrc = src;
+  }
+
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const timer = setTimeout(() => {
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      reject(new Error('image timeout'));
+    }, IMAGE_LOAD_TIMEOUT_MS);
+
+    if (!safeSrc.startsWith('data:') && !safeSrc.startsWith('blob:')) {
+      img.crossOrigin = 'anonymous';
+    }
+
+    img.onload = () => {
+      clearTimeout(timer);
+      resolve(img);
+    };
+    img.onerror = () => {
+      clearTimeout(timer);
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      reject(new Error('image load failed'));
+    };
+    img.src = safeSrc;
+  });
+};
+
+const drawImageCover = (
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  mirror: boolean,
+) => {
+  const imgAspect = img.width / img.height;
+  const boxAspect = w / h;
+  let drawW: number;
+  let drawH: number;
+  let drawX: number;
+  let drawY: number;
+
+  if (imgAspect > boxAspect) {
+    drawH = h;
+    drawW = img.width * (h / img.height);
+    drawX = x - (drawW - w) / 2;
+    drawY = y;
+  } else {
+    drawW = w;
+    drawH = img.height * (w / img.width);
+    drawX = x;
+    drawY = y - (drawH - h) / 2;
+  }
+
+  ctx.save();
+  ctx.filter = 'grayscale(100%) contrast(150%) brightness(120%)';
+  ctx.beginPath();
+  ctx.rect(x, y, w, h);
+  ctx.clip();
+
+  if (mirror) {
+    ctx.translate(x + w / 2, y + h / 2);
+    ctx.scale(-1, 1);
+    ctx.drawImage(img, drawX - x - w / 2, drawY - y - h / 2, drawW, drawH);
+  } else {
+    ctx.drawImage(img, drawX, drawY, drawW, drawH);
+  }
+
+  ctx.restore();
+  ctx.strokeStyle = '#000000';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(x, y, w, h);
+};
+
+const drawQrPlaceholder = (ctx: CanvasRenderingContext2D) => {
+  ctx.fillStyle = '#000000';
+  ctx.fillRect(PRINT_WIDTH - 80, 20, 60, 60);
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(PRINT_WIDTH - 76, 24, 52, 52);
+  ctx.fillStyle = '#000000';
+  ctx.font = 'bold 10px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('QR CODE', PRINT_WIDTH - 50, 55);
+};
+
+export interface ReceiptRenderInput {
+  originalImage: string;
+  transformedImage?: string;
+  job: string;
+  age: string;
+  qrUrl?: string;
+}
+
+/** 203 DPI 영수증 캔버스 렌더링 — 실패 시에도 빈 문자열 대신 fallback 반환 */
+export const renderReceiptPreview = async ({
+  originalImage,
+  transformedImage,
+  job,
+  age,
+  qrUrl,
+}: ReceiptRenderInput): Promise<string> => {
+  const canvas = document.createElement('canvas');
+  canvas.width = PRINT_WIDTH;
+  canvas.height = PRINT_HEIGHT;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return '';
+
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(0, 0, PRINT_WIDTH, PRINT_HEIGHT);
+
+  ctx.fillStyle = '#000000';
+  ctx.font = 'bold 36px sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('월드킹 당진서산점', 20, 50);
+
+  ctx.font = 'bold 16px sans-serif';
+  const dateStr = new Date().toLocaleDateString('ko-KR');
+  ctx.fillText(`${dateStr} | 미래의 내 모습 포토부스`, 20, 80);
+
+  if (qrUrl) {
+    try {
+      const qrDataUrl = await QRCode.toDataURL(qrUrl, { margin: 1, width: 80 });
+      const qrImg = await loadImage(qrDataUrl);
+      ctx.drawImage(qrImg, PRINT_WIDTH - 90, 10, 80, 80);
+    } catch {
+      drawQrPlaceholder(ctx);
+    }
+  } else {
+    drawQrPlaceholder(ctx);
+  }
+
+  ctx.beginPath();
+  ctx.setLineDash([5, 5]);
+  ctx.moveTo(20, 100);
+  ctx.lineTo(PRINT_WIDTH - 20, 100);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  const imgWidth = PRINT_WIDTH - 40;
+  const imgHeight = 300;
+  const futureSrc = transformedImage || originalImage;
+
+  try {
+    const originalImg = await loadImage(originalImage);
+    drawImageCover(ctx, originalImg, 20, 120, imgWidth, imgHeight, true);
+  } catch (e) {
+    console.error('원본 이미지 렌더 실패:', e);
+  }
+
+  ctx.fillStyle = '#000000';
+  ctx.fillRect(20, 120, 70, 30);
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = 'bold 18px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('현재', 55, 142);
+
+  const img2Y = 120 + imgHeight + 20;
+  try {
+    const futureImg = await loadImage(futureSrc);
+    drawImageCover(ctx, futureImg, 20, img2Y, imgWidth, imgHeight, true);
+  } catch (e) {
+    console.error('변환 이미지 렌더 실패, 원본으로 대체:', e);
+    try {
+      const fallback = await loadImage(originalImage);
+      drawImageCover(ctx, fallback, 20, img2Y, imgWidth, imgHeight, true);
+    } catch {
+      /* 원본도 실패 시 빈 칸 */
+    }
+  }
+
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(PRINT_WIDTH - 150, img2Y + imgHeight - 40, 130, 40);
+  ctx.strokeStyle = '#000000';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(PRINT_WIDTH - 150, img2Y + imgHeight - 40, 130, 40);
+  ctx.fillStyle = '#000000';
+  ctx.font = 'bold 18px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(`${age} ${job}`, PRINT_WIDTH - 85, img2Y + imgHeight - 14);
+
+  try {
+    return canvas.toDataURL('image/png');
+  } catch (e) {
+    console.error('캔버스 export 실패 (CORS):', e);
+    return '';
+  }
+};
