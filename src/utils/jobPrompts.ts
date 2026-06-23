@@ -249,54 +249,117 @@ export const JOB_PROMPTS: Record<string, string> = {
     'deeply thoughtful introspective creative expression',
 };
 
-// ─── 공통 네거티브 프롬프트 ───────────────────────────────────────────────────
-export const NEGATIVE_PROMPT = [
-  'bad quality, worst quality, low resolution, blurry, out of focus, grainy',
+// ─── 공통 네거티브 프롬프트 베이스 ───────────────────────────────────────────
+const NEGATIVE_BASE = [
+  'bad quality, worst quality, blurry, grainy, low resolution, out of focus',
   'deformed face, disfigured, distorted features, melting face, asymmetrical face',
   'extra limbs, extra fingers, missing fingers, wrong anatomy, malformed hands',
   'text, watermark, signature, logo, caption, subtitles',
-  'cartoon, anime, illustration, painting, drawing, 2D art, comic style',
-  'wrong age, baby face on adult body, childlike features on mature person',
+  'cartoon, anime, illustration, painting, 2D art, comic style',
   'multiple people, duplicate faces, cloned appearance',
-  'western caucasian facial features (must look Korean)',
-  'overly processed plastic surgery appearance',
-  'overly aged, excessively wrinkled, frail elderly, 80 years old appearance',
+  'western caucasian facial features, non-Korean appearance',
+  'overly processed plastic surgery appearance, uncanny valley',
   'poorly lit, harsh shadows, overexposed, underexposed',
+  'wrong gender, different person, identity mismatch',
 ].join(', ');
+
+/**
+ * 나이별 동적 네거티브 프롬프트
+ *
+ * 핵심 원리: 모델에게 "이 나이에 절대 나타나면 안 되는 요소"를 명시적으로 금지
+ * - 25살: 주름·흰머리 등 모든 노화 징후 금지
+ * - 35살: 뚜렷한 주름·노화 금지
+ * - 45살: 과도한 주름·노인 외모 금지
+ * - 55살: 극단적 노화·80세 외모 금지
+ * - 65살: 90세 이상 외모·매우 허약한 모습 금지
+ */
+export const buildNegativePrompt = (ageStr: string): string => {
+  const age = parseAgeNumber(ageStr);
+
+  if (age <= 30) {
+    return NEGATIVE_BASE + ', ' + [
+      'any wrinkles, crow\'s feet, nasolabial folds, forehead lines',
+      'aging spots, mature skin texture, skin sagging',
+      'gray hair, white hair, salt-and-pepper hair',
+      'middle-aged appearance, tired or aged expression',
+    ].join(', ');
+  }
+  if (age <= 40) {
+    return NEGATIVE_BASE + ', ' + [
+      'heavy wrinkles, deep facial lines, prominent nasolabial folds',
+      'significant gray hair, mostly gray hair',
+      'elderly or old-looking appearance, skin sagging',
+    ].join(', ');
+  }
+  if (age <= 50) {
+    return NEGATIVE_BASE + ', ' + [
+      'excessive deep wrinkles, heavily wrinkled face',
+      'mostly gray or white hair, heavily aged skin',
+      'elderly appearance, frail or weak-looking',
+      '60 or 70 years old appearance',
+    ].join(', ');
+  }
+  if (age <= 60) {
+    return NEGATIVE_BASE + ', ' + [
+      'extremely aged, deeply furrowed wrinkles, 70 or 80 years old appearance',
+      'white hair all over, heavy facial sagging, frail elderly',
+      'weak or sick looking, very old appearance',
+    ].join(', ');
+  }
+  // 65살+
+  return NEGATIVE_BASE + ', ' + [
+    'extremely old, 80 or 90 years old appearance, 100 year old',
+    'deeply furrowed wrinkles, severe facial sagging, frail or decrepit',
+    'senile or very sick appearance, bedridden appearance',
+  ].join(', ');
+};
+
+// 하위 호환성용 정적 버전 (기본 35살 기준)
+export const NEGATIVE_PROMPT = buildNegativePrompt('35살');
+
+// ─── 성별별 외모 스타일링 ────────────────────────────────────────────────────
+// 성별 특유의 헤어·메이크업 등 자연스러운 차이 반영
+const GENDER_STYLE: Record<string, string> = {
+  '남자': 'neat short professional hairstyle, clean-shaven or very light stubble',
+  '여자': 'neat professional hairstyle, natural subtle makeup, elegant feminine professional appearance',
+};
 
 // ─── 프롬프트 생성 함수 ──────────────────────────────────────────────────────
 
 /**
  * flux-pulid 전용 프롬프트 빌더
  *
- * 구성:
- *  1. 기본 정체성 (한국인, 성별, 얼굴 보존)
- *  2. 나이별 정밀 묘사
- *  3. 직업별 복장·배경
- *  4. 사진 품질 지시어
+ * 구성 순서 (앞 토큰일수록 가중치 높음):
+ *  1. 직업 장면·소품 (가장 중요 → 맨 앞)
+ *  2. 나이별 외모 묘사
+ *  3. 한국인·성별·스타일링
+ *  4. 촬영 품질 지시어
+ *
+ * 이전 구조("Professional portrait of..." 먼저)에서
+ * 직업 먼저 구조로 변경 — 모델이 직업/장면에 최대 집중
  */
 export const buildPulidPrompt = (
   job: string,
   ageStr: string,
   gender: string,
 ): string => {
-  const age = parseAgeNumber(ageStr);
+  const age     = parseAgeNumber(ageStr);
   const ageDesc = getAgeDescriptor(ageStr);
-  const genderEng = gender === '남자' ? 'man' : 'woman';
-  const jobDetail = JOB_PROMPTS[job] ?? 'wearing professional work attire in a matching workplace environment';
+  const genderEng   = gender === '남자' ? 'man' : 'woman';
+  const genderStyle = GENDER_STYLE[gender] ?? GENDER_STYLE['남자'];
+  const jobDetail   = JOB_PROMPTS[job] ?? 'wearing professional work attire at a matching workplace';
 
   return [
-    // 1. 정체성: 한국인, 성별, 얼굴 보존 명시
-    `Professional portrait of a ${age}-year-old Korean ${genderEng},`,
-    `same person as the reference image with identical facial identity, eyes, nose, face shape preserved.`,
-    // 2. 동아시아 외모 명시 (서양 얼굴 생성 방지)
-    `East Asian Korean facial features, warm olive skin tone, natural Asian appearance.`,
-    // 3. 나이별 정밀 묘사
-    `Age: ${ageDesc}.`,
-    // 4. 직업 복장·배경
+    // 1. 직업 장면 FIRST — AI 가중치 최대 활용
     `${jobDetail}.`,
-    // 5. 촬영 스타일 (인물 사진 전문 품질)
-    `Upper body portrait, looking directly at camera, natural soft portrait lighting,`,
-    `photorealistic Korean portrait photography, sharp focus on face, high detail, professional studio quality.`,
+    // 2. 나이 + 성별
+    `${age}-year-old Korean ${genderEng}. ${ageDesc}.`,
+    // 3. 성별별 헤어·스타일링
+    `${genderStyle}.`,
+    // 4. 동아시아 외모 앵커 (서양 얼굴 생성 방지)
+    `East Asian Korean facial features, warm olive undertone skin, natural Asian complexion.`,
+    // 5. 구도·조명·품질
+    `Upper body portrait, looking directly at camera. Natural soft portrait lighting, shallow depth of field.`,
+    `Photorealistic Korean portrait photography, tack-sharp face focus, professional studio quality.`,
   ].join(' ');
 };
