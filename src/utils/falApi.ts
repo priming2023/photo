@@ -4,6 +4,26 @@ import { uploadImageToSupabase } from './supabase';
 const FAL_ENDPOINT = 'https://fal.run/fal-ai/flux-pulid';
 const REQUEST_TIMEOUT_MS = 120_000;
 
+const parseFalError = (status: number, body: string): string => {
+  try {
+    const json = JSON.parse(body) as { detail?: string };
+    const detail = json.detail ?? body;
+
+    if (status === 403 && detail.toLowerCase().includes('balance')) {
+      return 'AI 크레딧이 부족합니다. fal.ai 결제 수단을 확인해 주세요.';
+    }
+    if (status === 401 || status === 403) {
+      return 'AI API 키가 유효하지 않습니다. 설정을 확인해 주세요.';
+    }
+    if (status === 429) {
+      return 'AI 요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.';
+    }
+    return `AI 변환 실패 (${status}): ${detail}`;
+  } catch {
+    return `AI 변환 실패 (${status})`;
+  }
+};
+
 /** canvas data URL을 Fal.ai가 받을 수 있는 형식으로 정규화 */
 const normalizeReferenceImage = (image: string): string => {
   if (image.startsWith('data:')) return image;
@@ -64,7 +84,7 @@ export const generateTransformedImage = async (
 
     if (!response.ok) {
       const errText = await response.text();
-      throw new Error(`Fal.ai ${response.status}: ${errText}`);
+      throw new Error(parseFalError(response.status, errText));
     }
 
     const data = await response.json();

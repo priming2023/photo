@@ -39,8 +39,15 @@ const Processing: React.FC<ProcessingProps> = ({ job, age, gender, originalImage
         console.error('처리 중 에러 발생', error);
         if (isComponentMounted) {
           setProgress(100);
-          setMessage('AI 연결이 어려워요. 원본 사진으로 보여드릴게요 🙏');
-          setTimeout(() => onFinish(''), 1200);
+          const errMsg = error instanceof Error ? error.message : '';
+          if (errMsg.includes('크레딧')) {
+            setMessage('AI 크레딧이 부족해요 💳 관리자에게 문의해 주세요');
+          } else if (errMsg.includes('시간 초과')) {
+            setMessage('시간이 너무 오래 걸려요. 다시 시도해 주세요 ⏱️');
+          } else {
+            setMessage('AI 연결이 어려워요. 원본 사진으로 보여드릴게요 🙏');
+          }
+          setTimeout(() => onFinish(''), 2000);
         }
       } finally {
         clearTimeout(timer1);
