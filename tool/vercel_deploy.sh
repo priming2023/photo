@@ -22,4 +22,4 @@ for VAR_VAL in "VITE_FAL_KEY=$FAL" "VITE_SUPABASE_URL=$SUPA_URL" "VITE_SUPABASE_
 done
 
 npx vercel@latest --prod --yes
-echo "[done] https://phto-orcin.vercel.app"
+echo "[done] https://phto-orcin.vercel.app  (또는 Vercel 대시보드의 Production URL)"
