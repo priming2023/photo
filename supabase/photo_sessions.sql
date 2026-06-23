@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS photo_sessions (
   job         TEXT NOT NULL DEFAULT '',
   age         TEXT NOT NULL DEFAULT '',
   created_at  TIMESTAMPTZ DEFAULT NOW(),
-  expires_at  TIMESTAMPTZ DEFAULT (NOW() + INTERVAL '30 days')
+  expires_at  TIMESTAMPTZ DEFAULT (NOW() + INTERVAL '14 days')
 );
 
 -- 2) RLS 활성화

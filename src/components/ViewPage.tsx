@@ -79,7 +79,7 @@ const ViewPage: React.FC<ViewPageProps> = ({ sessionId }) => {
           </h2>
           <p className="text-gray-500 leading-relaxed">
             {isExpired
-              ? '보관 기간(30일)이 지나 이미지가 삭제됐습니다.'
+              ? '보관 기간(14일)이 지나 이미지가 삭제됐습니다.'
               : 'QR 코드가 올바른지 다시 확인해 주세요.'}
           </p>
           <p className="mt-6 text-sm text-gray-400">월드킹 당진서산점</p>

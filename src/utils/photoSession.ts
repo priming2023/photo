@@ -73,7 +73,7 @@ export const savePhotoSession = async (
   void cleanupExpiredPhotos();
 
   const expiresAt = new Date();
-  expiresAt.setDate(expiresAt.getDate() + 7); // 7일 후 만료
+  expiresAt.setDate(expiresAt.getDate() + 14); // 14일 후 만료
 
   try {
     const { data, error } = await supabase
