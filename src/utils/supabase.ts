@@ -13,6 +13,37 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey)
  * - JPEG quality 0.78 (육안으로 차이 없는 수준)
  * - fetch → objectURL 방식으로 Canvas CORS 문제 완전 방지
  */
+const compressViaCanvas = (src: string): Promise<Blob> => {
+  const MAX_DIM = 720;
+  const QUALITY = 0.78;
+
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+
+    img.onload = () => {
+      let w = img.naturalWidth;
+      let h = img.naturalHeight;
+      if (w > MAX_DIM || h > MAX_DIM) {
+        const scale = MAX_DIM / Math.max(w, h);
+        w = Math.round(w * scale);
+        h = Math.round(h * scale);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      canvas.getContext('2d')!.drawImage(img, 0, 0, w, h);
+      canvas.toBlob(
+        (b) => (b ? resolve(b) : reject(new Error('toBlob 실패'))),
+        'image/jpeg',
+        QUALITY,
+      );
+    };
+    img.onerror = () => reject(new Error('이미지 로드 실패'));
+    img.src = src;
+  });
+};
+
 const compressForStorage = async (src: string): Promise<Blob> => {
   const MAX_DIM = 720;
   const QUALITY = 0.78;
@@ -22,11 +53,16 @@ const compressForStorage = async (src: string): Promise<Blob> => {
   let imgSrc = src;
 
   if (src.startsWith('http')) {
-    const res = await fetch(src);
-    if (!res.ok) throw new Error(`fetch 실패: ${res.status}`);
-    const blob = await res.blob();
-    objectUrl = URL.createObjectURL(blob);
-    imgSrc = objectUrl;
+    try {
+      const res = await fetch(src, { mode: 'cors' });
+      if (!res.ok) throw new Error(`fetch 실패: ${res.status}`);
+      const blob = await res.blob();
+      objectUrl = URL.createObjectURL(blob);
+      imgSrc = objectUrl;
+    } catch {
+      // Fal CDN 등 CORS fetch 실패 시 canvas crossOrigin 방식으로 재시도
+      return compressViaCanvas(src);
+    }
   }
 
   return new Promise((resolve, reject) => {
@@ -86,9 +122,18 @@ export const uploadImageToSupabase = async (imageSrc: string): Promise<string> =
       blob = await compressForStorage(imageSrc);
       console.log(`[Supabase] 압축 완료: ${Math.round(blob.size / 1024)} KB`);
     } catch (e) {
-      console.warn('[Supabase] 압축 실패, 원본 사용:', e);
-      const res = await fetch(imageSrc);
-      blob = await res.blob();
+      console.warn('[Supabase] 압축 실패, canvas/fetch 재시도:', e);
+      try {
+        if (imageSrc.startsWith('http')) {
+          blob = await compressViaCanvas(imageSrc);
+        } else {
+          const res = await fetch(imageSrc);
+          blob = await res.blob();
+        }
+      } catch (e2) {
+        console.error('[Supabase] 업로드 에러:', e2);
+        return '';
+      }
     }
 
     const fileName = `photo_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.jpg`;

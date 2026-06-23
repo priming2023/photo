@@ -81,14 +81,13 @@ export const JOB_PROMPTS: Record<string, string> = {
     'stage smoke and blurred audience in background, confetti in air, ' +
     'charismatic passionate performing expression',
 
-  // 과학자 ──────────────────────────────────────────────────────────────────
-  // E방안: 보안경 이마에 걸침 → 머리 레벨 핵심, 시험관 얼굴 레벨까지 올림
+  // 과학자 — 작은 시험관만 (플라스크는 AI가 거대하게 그림)
   '과학자':
     'wearing a white lab coat with name badge on chest, ' +
     'safety goggles clearly resting on forehead — key head-level identifier, ' +
-    'holding a glowing test tube or glass flask raised to face level in one hand, ' +
-    'cool blue-white fluorescent laboratory lighting on face, sophisticated research lab equipment in background, ' +
-    'intellectually focused analytical concentrated expression',
+    'holding a small standard laboratory test tube at chest level in one hand, normal human-scale size about 15cm tall, NOT oversized, NOT a large flask, ' +
+    'cool blue-white fluorescent laboratory lighting on face, research lab equipment softly blurred in background, ' +
+    'intellectually focused analytical expression',
 
   // 소방관 ──────────────────────────────────────────────────────────────────
   // E방안: 소방 헬멧 → 머리 레벨 핵심, 반사 줄 → 가슴/어깨 레벨

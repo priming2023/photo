@@ -32,13 +32,13 @@ function App() {
   };
 
   return (
-    <div className="w-screen h-screen bg-[#FDFBF7] text-gray-800 font-sans overflow-hidden relative selection:bg-blue-200">
+    <div className="w-screen min-h-screen lg:h-screen bg-[#FDFBF7] text-gray-800 font-sans overflow-x-hidden overflow-y-auto lg:overflow-hidden relative selection:bg-blue-200">
       
       <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-blue-100/50 blur-[100px] rounded-full pointer-events-none z-0"></div>
       <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-rose-100/50 blur-[100px] rounded-full pointer-events-none z-0"></div>
 
       {screen !== 'HOME' && (
-        <div className="absolute top-8 left-10 z-50 font-black text-2xl tracking-widest text-gray-800">
+        <div className="absolute top-4 left-4 lg:top-8 lg:left-10 z-50 font-black text-base lg:text-2xl tracking-widest text-gray-800">
           월드킹 <span className="font-medium text-gray-500">당진서산점</span>
         </div>
       )}
@@ -46,13 +46,13 @@ function App() {
       {screen !== 'HOME' && (
         <button 
           onClick={handleReset} 
-          className="absolute top-8 right-10 z-50 bg-white/80 backdrop-blur-md px-6 py-3 rounded-full border border-gray-200 shadow-sm font-bold text-gray-600 hover:bg-gray-80 hover:text-gray-900 transition-all flex items-center gap-2 hover:scale-105"
+          className="absolute top-4 right-4 lg:top-8 lg:right-10 z-50 bg-white/80 backdrop-blur-md px-4 py-2 lg:px-6 lg:py-3 rounded-full border border-gray-200 shadow-sm font-bold text-sm lg:text-base text-gray-600 hover:bg-gray-80 hover:text-gray-900 transition-all flex items-center gap-2 hover:scale-105"
         >
-          <span className="text-xl">🏠</span> 처음으로
+          <span className="text-lg lg:text-xl">🏠</span> 처음으로
         </button>
       )}
 
-      <div className="z-10 w-full h-full relative flex flex-col">
+      <div className="z-10 w-full min-h-screen lg:h-full relative flex flex-col">
         {screen === 'HOME' && <Home onStart={() => setScreen('SELECTION')} />}
         
         {screen === 'SELECTION' && (

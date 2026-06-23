@@ -4,6 +4,7 @@
 
 @layer base {
   body {
-    @apply antialiased overflow-hidden select-none touch-none;
+    @apply antialiased select-none overflow-y-auto touch-manipulation;
+    @apply lg:overflow-hidden lg:touch-none;
   }
 }

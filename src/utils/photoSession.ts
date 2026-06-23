@@ -115,5 +115,10 @@ export const getPhotoSession = async (id: string): Promise<PhotoSession | null> 
   }
 };
 
-export const buildViewUrl = (sessionId: string): string =>
-  `${window.location.origin}/view?id=${sessionId}`;
+export const buildViewUrl = (sessionId: string): string => {
+  // 키오스크 도메인과 배포 URL이 다를 수 있음 → Vercel 공개 URL 우선
+  const base =
+    (import.meta.env.VITE_PUBLIC_APP_URL as string | undefined)?.replace(/\/$/, '') ||
+    window.location.origin;
+  return `${base}/view?id=${sessionId}`;
+};
