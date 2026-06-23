@@ -33,9 +33,10 @@ const parseFalError = (status: number, body: string): string => {
  *     - start_step: 4  — PuLID 공식 권장값 (realistic images)
  *       step 0~3: 텍스트 프롬프트(직업·나이)로 자유 생성
  *       step 4~: 얼굴 ID 주입 → 얼굴 보존과 변환이 동시에 달성
- *     - id_weight / start_step: 나이별 동적 (getPulidParams)
- *       젊을수록 얼굴 고정, 나이 많을수록 노화 표현 허용
- *     - 동적 네거티브 프롬프트 — 나이별 과노화 방지
+ *     - id_weight 0.84~0.95: 닮음 우선 (PuLID 공식)
+ *     - start_step 2~4: 공식 권장 범위 (5+ 금지 — 닮음 붕괴)
+ *     - guidance 3.5 고정: fake CFG 자연스러운 실사
+ *     - 노화는 프롬프트(머리색·주름)로 표현, 파라미터로 억지 금지
  */
 export const generateTransformedImage = async (
   base64Image: string,
@@ -75,12 +76,12 @@ export const generateTransformedImage = async (
 
   // 3. flux-pulid 변환
   const prompt         = buildPulidPrompt(job, ageStr, gender);
-  const negativePrompt = buildNegativePrompt(ageStr);
+  const negativePrompt = buildNegativePrompt(ageStr, gender);
   // 나이·성별별 파라미터 — 젊으면 얼굴 고정, 나이 많으면 노화 표현 허용
   // 여성은 동안 경향이 강해 더 강하게 노화, 남성은 65세 살짝 젊게
   const { id_weight, start_step, guidance_scale } = getPulidParams(ageStr, gender);
   console.log('[Fal] 프롬프트 앞부분:', prompt.slice(0, 100));
-  console.log(`[Fal] 나이별 파라미터: id_weight=${id_weight}, start_step=${start_step}, guidance=${guidance_scale}`);
+  console.log(`[Fal] 파라미터 (${gender} ${ageStr}): id=${id_weight}, step=${start_step}, guidance=${guidance_scale}`);
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);

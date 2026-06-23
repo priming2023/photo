@@ -1,14 +1,5 @@
 /**
- * 직업·나이별 AI 변환 프롬프트 빌더
- *
- * E방안 적용 설계:
- * - imagePreprocess.ts: 상단 75% 타이트 크롭 → 얼굴이 입력 이미지의 40~60% 차지
- * - receiptCanvas.ts: top-aligned 렌더링 → 영수증에서 얼굴 항상 상단 표시
- *
- * 파일 구성:
- * - ageDescriptors.ts  : 나이별 묘사 + 네거티브 프롬프트 + 성별×나이 스타일
- * - jobDetails.ts      : 직업별 의상·소품·배경 (E방안 상반신 최적화)
- * - jobPrompts.ts (이 파일): buildPulidPrompt 통합 빌더 + 외부 export
+ * flux-pulid 프롬프트 빌더
  */
 
 export {
@@ -21,51 +12,26 @@ export {
   getPulidParams,
 } from './ageDescriptors';
 export type { PulidParams } from './ageDescriptors';
-
 export { JOB_PROMPTS } from './jobDetails';
 
 import { getAgeDescriptor, parseAgeNumber, getGenderAgeStyle } from './ageDescriptors';
 import { JOB_PROMPTS } from './jobDetails';
 
-/**
- * flux-pulid 전용 프롬프트 빌더
- *
- * 구성 순서 (앞 토큰일수록 가중치 높음):
- *  1. 직업 장면·소품 — FIRST (AI 가중치 최대 활용)
- *  2. 나이별 얼굴 묘사
- *  3. 성별×나이 헤어·스타일링 (E방안: 클로즈업에서 헤어가 매우 잘 보임)
- *  4. 동아시아 외모 앵커 (서양 얼굴 방지)
- *  5. 구도 지시어: 타이트 상반신, 얼굴 상단 위치
- *  6. 촬영 품질 지시어
- */
 export const buildPulidPrompt = (
   job: string,
   ageStr: string,
   gender: string,
 ): string => {
   const age         = parseAgeNumber(ageStr);
-  const ageDesc     = getAgeDescriptor(ageStr);
+  const ageDesc     = getAgeDescriptor(ageStr, gender);
   const genderEng   = gender === '남자' ? 'man' : 'woman';
   const genderStyle = getGenderAgeStyle(gender, age);
-  const jobDetail   = JOB_PROMPTS[job] ?? 'wearing professional work attire at a matching workplace';
+  const jobDetail   = JOB_PROMPTS[job] ?? 'wearing professional work attire at workplace';
 
   return [
-    // 0. 얼굴 동일성 — PuLID 참조 사진과 같은 사람 (최우선)
-    `Exact same person as reference photo. Preserve identical face shape, eye shape, nose, lips, and facial proportions.`,
-    `Natural bare ears with no earrings. No added jewelry or accessories on face unless in reference.`,
-    // 1. 직업 장면
+    `Same person as reference photo, preserve identical face shape eyes nose lips jawline.`,
+    `${age}-year-old Korean ${genderEng}. ${ageDesc}. ${genderStyle}.`,
     `${jobDetail}.`,
-    // 2. 나이 + 성별
-    `${age}-year-old Korean ${genderEng}. ${ageDesc}.`,
-    // 3. 성별×나이 헤어·스타일링
-    `${genderStyle}.`,
-    // 4. 동아시아 외모 앵커
-    `East Asian Korean facial features, warm olive undertone skin, natural Asian complexion.`,
-    // 5. 구도
-    `Upper body landscape shot with subject's face clearly centered and prominently visible, looking directly at camera.`,
-    `Natural soft portrait lighting, shallow depth of field, face in sharp focus.`,
-    // 6. 품질 — 자연스러운 실사 사진 (AI/플라스틱 느낌 방지)
-    `Candid realistic photograph taken on a DSLR camera, natural authentic skin texture with visible pores and fine detail.`,
-    `True-to-life natural skin tones, soft natural lighting, NOT airbrushed, NOT over-processed, looks like a real unedited photo of a real person.`,
+    `Upper body portrait, looking at camera, natural soft lighting, realistic photograph.`,
   ].join(' ');
 };

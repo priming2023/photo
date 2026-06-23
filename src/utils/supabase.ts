@@ -91,7 +91,7 @@ export const uploadImageToSupabase = async (imageSrc: string): Promise<string> =
       blob = await res.blob();
     }
 
-    const fileName = `photo_${Date.now()}.jpg`;
+    const fileName = `photo_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.jpg`;
 
     const { error } = await supabase.storage
       .from('photos')

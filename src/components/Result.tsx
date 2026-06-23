@@ -40,11 +40,13 @@ const Result: React.FC<ResultProps> = ({ originalImage, transformedImage, job, a
     let cancelled = false;
 
     const uploadAndRefreshQr = async () => {
-      // 현재·미래 사진 동시 업로드 (각 ~150KB 압축)
-      const [originalStorageUrl, transformedStorageUrl] = await Promise.all([
-        uploadImageToSupabase(originalImage),
-        uploadImageToSupabase(transformedImage || originalImage),
-      ]);
+      // 미래 사진 먼저 업로드 (QR 우선)
+      const transformedStorageUrl = await uploadImageToSupabase(
+        transformedImage || originalImage,
+      );
+      if (cancelled) return;
+
+      const originalStorageUrl = await uploadImageToSupabase(originalImage);
       if (cancelled) return;
 
       let viewUrl: string | undefined;
@@ -62,7 +64,6 @@ const Result: React.FC<ResultProps> = ({ originalImage, transformedImage, job, a
         }
       }
 
-      // 2-c) QR URL 반영한 영수증 재렌더
       const preview = await renderReceiptPreview({
         originalImage,
         transformedImage,
@@ -111,7 +112,7 @@ const Result: React.FC<ResultProps> = ({ originalImage, transformedImage, job, a
           </button>
           <button 
             onClick={onPrint}
-            disabled={!printPreviewUrl}
+            disabled={!printPreviewUrl || !qrUrl}
             className="w-80 py-6 bg-gray-800 text-white hover:bg-black rounded-[2rem] text-2xl font-black transition-all shadow-md hover:scale-105 flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             🖨️ 영수증 인쇄하기
@@ -132,8 +133,10 @@ const Result: React.FC<ResultProps> = ({ originalImage, transformedImage, job, a
              </div>
           )}
         </div>
-        {qrUrl && (
+        {qrUrl ? (
           <p className="text-xs text-green-500 mt-3">QR 코드 연결 완료</p>
+        ) : (
+          <p className="text-xs text-amber-500 mt-3">QR 코드 준비 중...</p>
         )}
       </div>
     </div>

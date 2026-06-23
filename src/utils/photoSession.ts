@@ -17,32 +17,45 @@ const extractStoragePath = (publicUrl: string): string => {
 };
 
 const cleanupExpiredPhotos = async (): Promise<void> => {
-  const now = new Date().toISOString();
+  try {
+    const now = new Date().toISOString();
+    const { data: expired, error } = await supabase
+      .from('photo_sessions')
+      .select('id, original_url, transformed_url')
+      .lt('expires_at', now);
 
-  const { data: expired, error } = await supabase
-    .from('photo_sessions')
-    .select('id, original_url, transformed_url')
-    .lt('expires_at', now);
+    if (error || !expired?.length) return;
 
-  if (error || !expired?.length) return;
+    const paths = expired.flatMap((s) => [
+      extractStoragePath(s.transformed_url),
+      s.original_url ? extractStoragePath(s.original_url) : '',
+    ]).filter(Boolean);
 
-  const paths = expired.flatMap((s) => [
-    extractStoragePath(s.transformed_url),
-    s.original_url ? extractStoragePath(s.original_url) : '',
-  ]).filter(Boolean);
-
-  if (paths.length) {
-    const { error: storageErr } = await supabase.storage.from('photos').remove(paths);
-    if (storageErr) console.warn('[Cleanup] Storage 삭제 부분 실패:', storageErr.message);
+    if (paths.length) {
+      await supabase.storage.from('photos').remove(paths);
+    }
+    await supabase.from('photo_sessions').delete().lt('expires_at', now);
+  } catch (e) {
+    console.warn('[Cleanup] 만료 정리 실패 (무시):', e);
   }
+};
 
-  await supabase.from('photo_sessions').delete().lt('expires_at', now);
-  console.log(`[Cleanup] 만료 세션 ${expired.length}건 정리 완료`);
+const tryInsert = async (
+  payload: Record<string, string>,
+): Promise<string | null> => {
+  const { data, error } = await supabase
+    .from('photo_sessions')
+    .insert(payload)
+    .select('id')
+    .single();
+
+  if (error) throw error;
+  return data.id as string;
 };
 
 /**
- * 현재·미래 사진 URL을 DB에 저장
- * 보관: 14일 / 용량: 2장 × ~150KB ≈ 300KB/명
+ * 세션 저장 — 3회 재시도 + original_url 폴백
+ * cleanup은 저장 성공 후 실행 (저장 방해하지 않음)
  */
 export const savePhotoSession = async (
   transformedUrl: string,
@@ -50,40 +63,40 @@ export const savePhotoSession = async (
   job: string,
   age: string,
 ): Promise<string | null> => {
-  void cleanupExpiredPhotos();
-
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + 14);
   const expires_at = expiresAt.toISOString();
 
-  // 1차: original_url 포함 저장
-  try {
-    const { data, error } = await supabase
-      .from('photo_sessions')
-      .insert({ transformed_url: transformedUrl, original_url: originalUrl, job, age, expires_at })
-      .select('id')
-      .single();
+  const fullPayload = {
+    transformed_url: transformedUrl,
+    original_url: originalUrl || transformedUrl,
+    job,
+    age,
+    expires_at,
+  };
+  const minimalPayload = { transformed_url: transformedUrl, job, age, expires_at };
 
-    if (error) throw error;
-    return data.id as string;
-  } catch (err) {
-    // original_url 컬럼 미생성(마이그레이션 미실행) 등으로 실패 시 →
-    // original_url 없이 재시도해 최소한 QR(미래 사진)은 동작하도록 보장
-    console.warn('[Session] original_url 포함 저장 실패, 미포함으로 재시도:', err);
+  for (let attempt = 1; attempt <= 3; attempt++) {
     try {
-      const { data, error } = await supabase
-        .from('photo_sessions')
-        .insert({ transformed_url: transformedUrl, job, age, expires_at })
-        .select('id')
-        .single();
-
-      if (error) throw error;
-      return data.id as string;
-    } catch (err2) {
-      console.error('[Session] 저장 최종 실패:', err2);
-      return null;
+      const id = await tryInsert(fullPayload);
+      void cleanupExpiredPhotos();
+      return id;
+    } catch (err) {
+      console.warn(`[Session] 저장 시도 ${attempt}/3 실패:`, err);
+      if (attempt === 3) {
+        try {
+          const id = await tryInsert(minimalPayload);
+          void cleanupExpiredPhotos();
+          return id;
+        } catch (err2) {
+          console.error('[Session] 최종 저장 실패:', err2);
+          return null;
+        }
+      }
+      await new Promise((r) => setTimeout(r, 400 * attempt));
     }
   }
+  return null;
 };
 
 export const getPhotoSession = async (id: string): Promise<PhotoSession | null> => {
