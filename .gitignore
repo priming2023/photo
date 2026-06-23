@@ -21,3 +21,4 @@ vite.config.js
 # Electron build output
 out/
 release/
+.vercel

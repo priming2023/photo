@@ -58,6 +58,7 @@ const drawImageCover = (
   w: number,
   h: number,
   mirror: boolean,
+  verticalAlign: 'center' | 'top' = 'top',
 ) => {
   const imgAspect = img.width / img.height;
   const boxAspect = w / h;
@@ -67,15 +68,18 @@ const drawImageCover = (
   let drawY: number;
 
   if (imgAspect > boxAspect) {
+    // 이미지가 가로형: 높이에 맞추고 좌우 중앙 자름
     drawH = h;
     drawW = img.width * (h / img.height);
     drawX = x - (drawW - w) / 2;
     drawY = y;
   } else {
+    // 이미지가 세로형(portrait): 너비에 맞추고 상하 자름
+    // Method A: top 정렬 → 얼굴이 항상 상단에 표시
     drawW = w;
     drawH = img.height * (w / img.width);
     drawX = x;
-    drawY = y - (drawH - h) / 2;
+    drawY = verticalAlign === 'top' ? y : y - (drawH - h) / 2;
   }
 
   ctx.save();
@@ -168,7 +172,7 @@ export const renderReceiptPreview = async ({
 
   try {
     const originalImg = await loadImage(originalImage);
-    drawImageCover(ctx, originalImg, 20, 120, imgWidth, imgHeight, true);
+    drawImageCover(ctx, originalImg, 20, 120, imgWidth, imgHeight, true, 'top');
   } catch (e) {
     console.error('원본 이미지 렌더 실패:', e);
   }
@@ -183,12 +187,12 @@ export const renderReceiptPreview = async ({
   const img2Y = 120 + imgHeight + 20;
   try {
     const futureImg = await loadImage(futureSrc);
-    drawImageCover(ctx, futureImg, 20, img2Y, imgWidth, imgHeight, true);
+    drawImageCover(ctx, futureImg, 20, img2Y, imgWidth, imgHeight, true, 'top');
   } catch (e) {
     console.error('변환 이미지 렌더 실패, 원본으로 대체:', e);
     try {
       const fallback = await loadImage(originalImage);
-      drawImageCover(ctx, fallback, 20, img2Y, imgWidth, imgHeight, true);
+      drawImageCover(ctx, fallback, 20, img2Y, imgWidth, imgHeight, true, 'top');
     } catch {
       /* 원본도 실패 시 빈 칸 */
     }

@@ -24,11 +24,13 @@ export const cropToPortrait = (base64DataUrl: string): Promise<string> => {
 
       if (srcRatio > TARGET_RATIO) {
         // 가로가 더 넓음 (일반 웹캠 16:9)
-        // 세로 전체 사용, 가로만 중앙 크롭
-        cropH = srcH;
-        cropW = Math.round(srcH * TARGET_RATIO);
-        cropX = Math.round((srcW - cropW) / 2);
-        cropY = 0;
+        // Method D: 상단 75%만 사용 → 허리 이하 제거, 얼굴+상반신 집중
+        // 효과: AI 입력에서 얼굴 비율이 ~1.26배 커짐 → 아이덴티티 보존·직업 표현 향상
+        const usableH = Math.round(srcH * 0.75);
+        cropH = usableH;
+        cropW = Math.round(usableH * TARGET_RATIO);
+        cropX = Math.round((srcW - cropW) / 2); // 수평 중앙 정렬
+        cropY = 0; // 상단(머리)부터 시작
       } else {
         // 이미 세로형 (portrait 또는 square)
         cropW = srcW;
