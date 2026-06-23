@@ -14,71 +14,69 @@
 //   2. "healthy", "vibrant", "well-maintained" 키워드로 한국인 특유의 젊은 외모 보존
 //   3. 연령대별 주요 변화 부위(눈가 → 입술·볼) 순서 반영
 export const AGE_DESCRIPTORS: Record<number, string> = {
-  // 25살 ──────────────────────────────────────────────────────────────────────
-  // 탄력 피부, 볼 볼륨, 주름 전혀 없음, 활기찬 표정
+  // 25살 ─────────────────────────────────────────────────────────────────────
+  // 완벽히 매끈한 피부, 통통한 볼, 주름 없음
   25: [
-    'looks 25 years old',
-    'perfectly smooth clear skin with zero wrinkles or lines',
-    'plump youthful cheeks with natural volume',
-    'bright alert eyes with firm under-eye area',
-    'firm defined jawline',
-    'fresh glowing healthy complexion',
-    'energetic youthful appearance',
+    'looks exactly 25 years old',
+    'perfectly smooth flawless skin with absolutely no wrinkles',
+    'plump full cheeks with youthful volume',
+    'bright wide eyes with smooth firm under-eye skin',
+    'sharp defined jawline',
+    'fresh radiant glass skin complexion',
+    'very energetic youthful appearance, looks like a university student',
   ].join(', '),
 
-  // 35살 ──────────────────────────────────────────────────────────────────────
-  // LG H&H 연구: 30대 후반부터 눈가 잔주름 시작
-  // 한국인: 피부 관리로 아직 매우 젊어 보임, 자연스러운 성숙함
+  // 35살 ─────────────────────────────────────────────────────────────────────
+  // 한국인 35세 = 25세처럼 보이는 경우 많음. 자연스러운 성숙함만
   35: [
-    'looks 35 years old',
-    'healthy mature skin with minimal fine lines',
-    'very subtle smile lines at outer eye corners only',
-    'slightly refined nasolabial folds just barely visible',
-    'well-maintained skin with good elasticity',
-    'confident natural professional look',
-    'vibrant healthy complexion, still very youthful',
-    'mostly dark hair, naturally well-groomed',
+    'looks exactly 35 years old',
+    'smooth healthy skin, barely any visible lines',
+    'only the faintest hint of smile lines at far outer eye corners, almost invisible',
+    'nasolabial folds NOT visible',
+    'excellent skin elasticity, well-maintained appearance',
+    'confident professional look, still looks very youthful',
+    'vibrant healthy complexion, full cheeks',
+    'dark hair, naturally neat and groomed',
   ].join(', '),
 
-  // 45살 ──────────────────────────────────────────────────────────────────────
-  // 눈가 주름 뚜렷, 팔자주름 시작, 관자놀이 흰머리 조금
-  // 한국 45세: 여전히 활기차고 건강해 보이는 중년
+  // 45살 ─────────────────────────────────────────────────────────────────────
+  // 핵심 수정: 주름 거의 없음. 한국 45세는 서양인 35세 수준으로 보임
+  // "noticeable wrinkles" 완전 삭제 → 성숙함은 눈빛과 표정으로만 표현
   45: [
-    'looks 45 years old',
-    'natural middle-aged Korean appearance',
-    'noticeable crow\'s feet wrinkles at outer eye corners',
-    'gentle smile lines from nose to mouth corners (moderate only)',
-    'slight puffiness or relaxation under the eyes',
-    'healthy mature skin with natural texture',
-    'mostly dark hair with a few natural gray hairs at temples',
-    'confident distinguished middle-aged look, active and healthy',
+    'looks exactly 45 years old',
+    'healthy mature Korean appearance, looks younger than actual age',
+    'smooth well-maintained skin with very minimal lines',
+    'only barely visible fine lines at outer eye corners when smiling, NOT prominent',
+    'nasolabial folds very subtle and faint',
+    'full healthy cheeks, good skin elasticity',
+    'mostly dark hair with just a couple natural gray strands at temples',
+    'confident distinguished mature look, very active and healthy, NOT middle-aged looking',
   ].join(', '),
 
-  // 55살 ──────────────────────────────────────────────────────────────────────
-  // LG H&H: 50세 이후 입술 주변 변화 + 볼 탄력 감소
-  // 중요: 한국인 55세는 건강하고 활기차 보임 - 80세처럼 보이면 안됨
+  // 55살 ─────────────────────────────────────────────────────────────────────
+  // 자연스러운 노화, 건강하고 활기찬 모습. 서양인 45세 수준으로 보임
   55: [
-    'looks 55 years old',
-    'naturally aged but healthy vibrant Korean appearance',
-    'visible crow\'s feet and forehead lines, natural not extreme',
-    'moderate nasolabial folds and slight lip corner lines',
-    'mild skin laxity at cheeks, NOT heavily sagging',
-    'salt-and-pepper hair (mostly dark with visible gray strands), well-groomed',
-    'dignified healthy active 55-year-old, looks fit and well',
-    'wise confident expression, NOT elderly or frail looking',
+    'looks exactly 55 years old',
+    'naturally aged but vibrant healthy Korean appearance',
+    'light crow\'s feet lines at outer eye corners only, subtle not deep',
+    'gentle smile lines from nose corners, mild not extreme',
+    'healthy skin with natural mature texture, NOT sagging',
+    'salt-and-pepper hair (dark base with some visible gray), well-styled',
+    'fit active 55-year-old, full of vitality, looks 10 years younger than age',
+    'wise confident smile, absolutely NOT frail or elderly-looking',
   ].join(', '),
 
-  // 65살 ──────────────────────────────────────────────────────────────────────
-  // 뚜렷하나 한국인답게 품위 있는 노화, 과도한 노화 묘사 절대 금지
+  // 65살 ─────────────────────────────────────────────────────────────────────
+  // 한국인 특유의 품위 있는 노화. 서양인 55세 수준으로 보임
   65: [
-    'looks 65 years old',
-    'graceful natural aging, healthy dignified Korean elder',
-    'clear but moderate wrinkles around eyes and mouth (not deep crevices)',
-    'relaxed facial contour with gentle skin laxity, NOT heavily sagging',
-    'silver-gray or mostly gray well-kept hair, neatly styled',
-    'warm healthy skin tone maintained, natural mature complexion',
-    'kind wise elder expression, active healthy appearance',
-    'distinguished 65-year-old, looks healthy and well, NOT frail or very elderly',
+    'looks exactly 65 years old',
+    'graceful dignified Korean aging, healthy and distinguished',
+    'moderate natural wrinkles around eyes and smile area only, NOT deep creases',
+    'gentle relaxed facial contour, skin slightly softer but NOT heavily sagging',
+    'silver-gray well-groomed hair, neatly styled with dignity',
+    'warm healthy skin tone, natural mature Korean complexion',
+    'kind wise expression, active and healthy elder',
+    'distinguished respected 65-year-old, looks energetic and well, NOT frail',
   ].join(', '),
 };
 
@@ -107,113 +105,148 @@ export const parseAgeNumber = (ageStr: string): number => {
 //   2. 단정함(danjeongham) - 한국 직장 문화의 핵심 가치
 //   3. 배경을 구체적으로 묘사해 장면의 현실감 높임
 export const JOB_PROMPTS: Record<string, string> = {
+  // 운동선수: 트로피·메달이 가장 상징적
   '운동선수':
-    'wearing a professional Korean sports team uniform with national colors, ' +
-    'athletic training gear or competition jersey with team logo, ' +
-    'standing in a modern indoor sports facility or stadium, ' +
-    'confident athletic posture, holding sport-specific equipment',
+    'wearing a professional Korean national sports team competition uniform with bold team colors and logo, ' +
+    'holding a gold trophy or championship medal proudly in both hands, ' +
+    'standing in a large packed stadium with floodlights and crowd in background, ' +
+    'victorious champion pose, athletic confident expression',
 
+  // 의사: 청진기 목에 걸고 + 흰 가운이 핵심 식별자
   '의사':
-    'wearing a clean pressed white doctor coat with hospital name badge and stethoscope, ' +
-    'standing in a bright modern Korean hospital room or medical office, ' +
-    'clinical background with medical equipment visible, ' +
-    'professional confident posture, holding a medical chart or digital tablet',
+    'wearing a clean crisp white doctor coat with hospital name badge pinned on chest, ' +
+    'stethoscope clearly hanging around neck — the most important visual identifier, ' +
+    'holding a patient medical chart or clipboard in one hand, ' +
+    'standing in a bright modern Korean hospital room with medical equipment visible, ' +
+    'professional trusted doctor expression',
 
+  // 유튜버: 카메라 앞에서 촬영 중인 모습
   '유튜버':
-    'wearing trendy contemporary Korean casual streetwear, ' +
-    'sitting in a well-lit Korean creator studio with professional LED ring lights, ' +
-    'microphone and camera equipment visible, ' +
-    'modern desktop setup in background, relaxed confident creator expression',
+    'wearing trendy Korean streetwear or casual creator outfit, ' +
+    'sitting in front of a professional camera on tripod, large LED ring light illuminating face, ' +
+    'professional condenser microphone on desk stand beside them, ' +
+    'multiple monitors with video editing software visible in background, ' +
+    'energetic engaging creator expression, pointing or gesturing to camera',
 
+  // 선생님: 칠판 앞에서 분필/마커 들고 수업하는 모습
   '선생님':
-    'wearing neat smart professional Korean business casual attire, ' +
-    'standing at the front of a Korean classroom with a chalkboard or whiteboard, ' +
-    'Korean school setting visible in background, ' +
-    'holding a textbook or lesson materials, warm encouraging expression',
+    'wearing neat professional Korean business casual attire, ' +
+    'standing at the front of a Korean classroom, pointing at a chalkboard or whiteboard behind them, ' +
+    'holding a piece of chalk or dry-erase marker in raised hand, ' +
+    'open textbook on teacher\'s desk visible, students\' desks in background, ' +
+    'warm authoritative teacher expression',
 
+  // 요리사: 높은 요리사 모자 + 주방칼이 핵심
   '요리사':
-    'wearing a pristine white Korean chef uniform with double-breasted jacket and chef\'s toque hat, ' +
-    'standing in a professional restaurant kitchen with stainless steel countertops and equipment, ' +
-    'holding cooking utensils or a prepared dish, ' +
-    'proud accomplished chef expression',
+    'wearing a pristine white double-breasted chef jacket with tall white toque chef\'s hat on head, ' +
+    'holding a professional chef\'s knife firmly in right hand — key visual identifier, ' +
+    'standing at a professional stainless steel kitchen counter with mise en place ingredients, ' +
+    'restaurant kitchen with flames and equipment visible in background, ' +
+    'proud accomplished master chef expression',
 
+  // 경찰관: 경찰 모자 + 배지가 핵심
   '경찰관':
-    'wearing a formal Korean police officer uniform in navy blue with official badge and rank insignia, ' +
-    'standing in an urban Korean city setting or police station background, ' +
-    'authoritative composed posture, ' +
-    'professional Korean law enforcement appearance',
+    'wearing full formal Korean police officer uniform in navy blue, ' +
+    'official police cap with gold badge prominently on head — key identifier, ' +
+    'large silver police badge clearly displayed on chest, handcuffs on belt, ' +
+    'standing upright with hands clasped behind back or on duty belt, ' +
+    'Korean police station or urban street background, authoritative protective expression',
 
+  // 프로게이머: 팀 유니폼 + 헤드셋이 핵심
   '프로게이머':
-    'wearing a professional Korean esports team jersey with team logo and sponsor patches, ' +
-    'sitting at a top-tier Korean esports gaming setup with multiple monitors, ' +
-    'wearing a gaming headset, ' +
-    'intense focused competitive expression, esports arena atmosphere',
+    'wearing a professional Korean esports team jersey with bold team logo and sponsor patches, ' +
+    'wearing a high-end gaming headset with mic boom clearly visible — key identifier, ' +
+    'seated at a competition gaming desk with mechanical keyboard and gaming mouse, ' +
+    'multiple large gaming monitors glowing in background, esports arena stage lighting, ' +
+    'intense focused champion expression',
 
+  // 가수: 마이크 들고 + 무대 조명이 핵심
   '가수':
-    'wearing a stylish Korean stage performance outfit or idol-style fashion, ' +
-    'holding a professional microphone on a concert stage, ' +
-    'dramatic Korean concert lighting with colorful spotlights and audience visible, ' +
-    'charismatic energetic performing expression',
+    'wearing a glamorous Korean idol or performer stage outfit with bold styling, ' +
+    'holding a professional wireless microphone raised up near mouth — key identifier, ' +
+    'performing on a large concert stage with dramatic colorful spotlights shining down, ' +
+    'large audience visible in background, confetti or smoke effects, ' +
+    'charismatic passionate performing expression',
 
+  // 과학자: 시험관 + 고글이 핵심
   '과학자':
-    'wearing a white lab coat with safety goggles on forehead and ID badge, ' +
-    'standing in a modern Korean research laboratory, ' +
-    'scientific equipment and computers visible in background, ' +
-    'holding a clipboard or scientific equipment, focused intelligent expression',
+    'wearing a white lab coat with name badge, safety goggles pushed up on forehead, ' +
+    'holding a glowing test tube or laboratory flask in one hand — key identifier, ' +
+    'standing in a modern research laboratory with sophisticated equipment: centrifuges, microscopes, computers, ' +
+    'shelves of chemical bottles and scientific instruments in background, ' +
+    'intellectually focused analytical expression',
 
+  // 소방관: 소방 헬멧 + 소방복 반사 줄이 핵심
   '소방관':
-    'wearing official Korean firefighter protective gear with reflective stripes and Korean 소방청 insignia, ' +
-    'standing in front of a Korean red fire engine, ' +
-    'full safety equipment including helmet, ' +
-    'brave determined protective expression',
+    'wearing full official Korean firefighter turnout gear with bright orange-red jacket and reflective silver stripes, ' +
+    'wearing a yellow or white firefighter helmet on head — key identifier, ' +
+    'holding a fire axe in one hand or gripping a large fire hose, ' +
+    'standing in front of a red Korean fire engine with 소방차 text visible, ' +
+    'brave heroic determined expression',
 
+  // 간호사: 청진기 + 주사기 or 약통이 핵심
   '간호사':
-    'wearing a professional Korean nurse uniform with nursing cap or neat scrubs, ' +
-    'stethoscope visible, standing in a modern Korean hospital corridor, ' +
-    'medical equipment and patient rooms visible in background, ' +
-    'caring professional expression, holding medical tablet or clipboard',
+    'wearing a professional Korean nurse uniform in white or light blue scrubs with name badge, ' +
+    'stethoscope around neck and holding a syringe or medication tray in hand — key identifiers, ' +
+    'standing in a modern Korean hospital corridor with patient rooms visible, ' +
+    'medical monitoring equipment and IV stand in background, ' +
+    'compassionate caring professional expression',
 
+  // 판사: 판사봉(gavel)을 손에 들고 법복 착용 — 사용자가 특별 요청
   '판사':
-    'wearing a formal black Korean judicial robe with official court insignia, ' +
-    'seated behind a traditional wooden judicial bench in a Korean courtroom, ' +
-    'Korean court setting visible, holding a wooden gavel, ' +
-    'authoritative wise composed expression',
+    'wearing a formal black Korean judicial robe (법복) with official court emblem, ' +
+    'holding a wooden gavel raised in right hand — THE most important visual identifier, ' +
+    'seated behind an elevated wooden judicial bench in a Korean courtroom, ' +
+    'Korean national emblem on wall, legal books and nameplate on bench visible, ' +
+    'highly authoritative wise composed expression',
 
+  // 변호사: 법률 서류 + 서류가방이 핵심
   '변호사':
-    'wearing a sharp tailored dark business suit, ' +
-    'standing in a prestigious modern Korean law office with legal books and documents, ' +
-    'professional briefcase or legal documents visible, ' +
-    'confident commanding professional expression',
+    'wearing a sharp well-fitted dark navy or charcoal business suit with tie, ' +
+    'holding a thick stack of legal documents or case files in one arm — key identifier, ' +
+    'carrying a professional leather briefcase in other hand, ' +
+    'standing in a prestigious Korean law office with floor-to-ceiling legal bookshelves, ' +
+    'confident commanding sharp professional expression',
 
+  // 수의사: 동물 안고 + 청진기가 핵심
   '수의사':
-    'wearing medical scrubs and a white veterinary coat with name badge, ' +
-    'in a bright modern Korean animal clinic or hospital, ' +
-    'gently examining or cradling a healthy animal (puppy or kitten), ' +
-    'warm caring professional smile',
+    'wearing teal or green medical scrubs with a white veterinary coat and name badge, ' +
+    'gently cradling a small fluffy puppy against chest — key visual identifier, ' +
+    'stethoscope around neck, exam table with medical tools visible, ' +
+    'bright modern Korean veterinary clinic with animal cages in background, ' +
+    'warm gentle caring professional smile',
 
+  // 파일럿: 4줄 견장 + 파일럿 모자가 핵심
   '파일럿':
-    'wearing a formal Korean airline pilot captain uniform with four-stripe epaulettes and captain\'s hat, ' +
-    'Korean Air or Asiana style navy uniform with wings badge, ' +
-    'standing confidently in or near a cockpit, ' +
-    'authoritative professional pilot stance',
+    'wearing a formal Korean airline captain uniform in dark navy, ' +
+    'captain\'s hat with gold wings badge prominently on head — key identifier, ' +
+    'four gold stripes epaulettes clearly visible on shoulders, ' +
+    'pilot wings badge pinned on chest, standing in front of airplane cockpit or jet bridge, ' +
+    'authoritative calm professional pilot expression',
 
+  // 건축가: 건축 도면 + 안전모가 핵심
   '건축가':
-    'wearing smart professional attire with optional safety vest, ' +
-    'standing at a modern Korean architectural office or construction site, ' +
-    'holding large architectural blueprints or using design software on a laptop, ' +
-    'creative visionary professional expression',
+    'wearing a white hard hat on head and bright orange safety vest — key identifiers, ' +
+    'holding large rolled-up architectural blueprints in both hands, ' +
+    'standing at a modern Korean construction site or architectural firm office, ' +
+    'scale models and CAD drawings visible on desk in background, ' +
+    'visionary creative professional expression',
 
+  // 디자이너: 태블릿 + 스타일리시한 옷이 핵심
   '디자이너':
-    'wearing stylish contemporary Korean fashion or creative professional attire, ' +
-    'sitting in a sleek modern Korean creative design studio, ' +
-    'professional design work visible on large monitor screens, ' +
-    'holding a digital drawing tablet, creative inspired expression',
+    'wearing stylish trendy Korean fashion or creative professional outfit with distinctive accessories, ' +
+    'holding a professional digital drawing tablet with stylus pen in hand — key identifier, ' +
+    'large monitor showing colorful graphic design or UI work in background, ' +
+    'sitting in a sleek modern creative studio with mood board and design samples on wall, ' +
+    'creative inspired imaginative expression',
 
+  // 작가: 만년필 + 원고지/책이 핵심
   '작가':
-    'wearing comfortable sophisticated casual clothing, ' +
-    'seated at an elegant writing desk in a cozy Korean literary setting, ' +
-    'surrounded by bookshelves with Korean and international books, ' +
-    'holding a pen or looking thoughtfully at manuscript, focused creative expression',
+    'wearing comfortable sophisticated casual literary clothing, ' +
+    'holding a fountain pen poised over an open manuscript on a wooden writing desk — key identifier, ' +
+    'surrounded by tall bookshelves packed with Korean and world literature books, ' +
+    'reading glasses resting on desk, coffee mug and papers visible, warm lamp lighting, ' +
+    'deeply thoughtful introspective creative expression',
 };
 
 // ─── 공통 네거티브 프롬프트 ───────────────────────────────────────────────────
