@@ -4,14 +4,25 @@ import Selection from './components/Selection';
 import Camera from './components/Camera';
 import Processing from './components/Processing';
 import Result from './components/Result';
+import ViewPage from './components/ViewPage';
+
+// /view?id=xxx → QR 스캔 후 모바일 뷰 페이지로 라우팅
+const viewId = new URLSearchParams(window.location.search).get('id');
+const isViewPage = window.location.pathname.startsWith('/view') && !!viewId;
 
 export type ScreenState = 'HOME' | 'SELECTION' | 'CAMERA' | 'PROCESSING' | 'RESULT';
 
 function App() {
+  // hooks는 항상 최상단에서 호출 (rules of hooks 준수)
   const [screen, setScreen] = useState<ScreenState>('HOME');
   const [selections, setSelections] = useState({ job: '', age: '', gender: '' });
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [transformedImage, setTransformedImage] = useState<string | null>(null);
+
+  // QR 스캔으로 접근한 경우 뷰 페이지 렌더링 (hooks 호출 후 조건부 return)
+  if (isViewPage) {
+    return <ViewPage sessionId={viewId!} />;
+  }
 
   const handleReset = () => {
     setScreen('HOME');
