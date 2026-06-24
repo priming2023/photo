@@ -19,7 +19,7 @@ export interface FrameFitRect {
 }
 
 /** 영수증 — AI 미래 사진 (살짝 줌아웃 + 얼굴 아래로) */
-export const FUTURE_PHOTO_COVER: CoverYBiasOptions = { yBias: 0.10, widthScale: 0.93 };
+export const FUTURE_PHOTO_COVER: CoverYBiasOptions = { yBias: 0.12, widthScale: 0.90 };
 
 /** 영수증 — 웹캠 현재 사진 (얼굴·상체 중심) */
 export const CURRENT_PHOTO_COVER_ALIGN: CoverVerticalAlign = 'upper-body';
