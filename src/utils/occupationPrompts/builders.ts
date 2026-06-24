@@ -223,11 +223,10 @@ export const buildFirefighterPrompt = ({ gender, age }: JobPromptCtx): string =>
 
   return joinParts(
     gear,
-    'yellow firefighter helmet on head with visor up — key head-level identifier',
     'silver reflective safety stripes across chest and shoulders',
     seniority(age) === 'senior' && 'veteran fire captain rank patch on sleeve',
     'dramatic red-orange emergency lighting on face, red Korean fire engine blurred behind',
-    'brave heroic determined expression',
+    'brave heroic determined expression, hair visible no helmet',
     WAIST_UP_NOTE,
   );
 };

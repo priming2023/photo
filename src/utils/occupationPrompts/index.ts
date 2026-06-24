@@ -80,7 +80,7 @@ export const JOB_NEGATIVES: Partial<Record<string, string>> = {
   '디자이너':
     'giant tablet, oversized stylus, tablet merged with hands',
   '소방관':
-    'wrong helmet shape, civilian clothes, missing reflective stripes',
+    'firefighter helmet, helmet on head, hard hat, deformed helmet, wrong helmet shape, cowboy helmet, oversized helmet',
   '운동선수':
     'wrong sport uniform, baseball jersey, basketball jersey instead of football',
   '프로게이머':
