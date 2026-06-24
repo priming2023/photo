@@ -19,7 +19,10 @@ import { getJobPrompt } from './occupationPrompts';
 import type { EyewearState } from './eyewearDetection';
 import { getEyewearPrompt } from './eyewearDetection';
 import type { SubjectAgeCategory } from './subjectAgeDetection';
-import { getChildGrowthPrompt } from './subjectAgeDetection';
+import {
+  getChildAgeBoost,
+  getChildGrowthPrompt,
+} from './subjectAgeDetection';
 
 export const buildPulidPrompt = (
   job: string,
@@ -35,14 +38,19 @@ export const buildPulidPrompt = (
   const jobDetail   = getJobPrompt(job, gender, ageStr);
   const eyewearDesc = getEyewearPrompt(eyewear);
   const childGrowth = subjectAge === 'child' ? getChildGrowthPrompt(ageStr) : '';
+  const childAgeBoost = subjectAge === 'child' ? getChildAgeBoost(ageStr, gender) : '';
 
-  // 안경·구도를 최우선 배치 (PuLID가 뒤에서 덮어쓰지 못하게)
+  const identityLine = subjectAge === 'child'
+    ? 'Same person as reference photo but fully grown up as an adult — preserve general likeness and expression, transform child bone structure into mature adult face'
+    : 'Same person as reference photo, preserve identical face shape eyes nose lips jawline skin texture';
+
   const parts = [
+    subjectAge === 'child' && childGrowth ? `${childGrowth}.` : '',
     eyewearDesc ? `${eyewearDesc}.` : '',
-    `Same person as reference photo, preserve identical face shape eyes nose lips jawline skin texture.`,
+    identityLine + '.',
     `single person only, one face only, solo portrait, no duplicate faces, no split image.`,
-    childGrowth ? `${childGrowth}.` : '',
     `${age}-year-old Korean ${genderEng}. ${ageDesc}. ${genderStyle}.`,
+    childAgeBoost ? `${childAgeBoost}.` : '',
     `${jobDetail}.`,
     `Waist-up three-quarter shot at natural distance, head shoulders chest and hands fully visible, occupational props clearly shown, not close-up not extreme close-up, candid natural photograph, soft daylight, subtle real skin texture, documentary portrait style.`,
   ];

@@ -7,7 +7,7 @@ import {
   getEyewearPulidAdjust,
 } from './eyewearDetection';
 import { JOB_NEGATIVES } from './occupationPrompts';
-import { detectSubjectAge, getChildAgeWeightAdjust } from './subjectAgeDetection';
+import { detectSubjectAge, getChildNegativePrompt, getChildPulidAdjust } from './subjectAgeDetection';
 
 const PULID_ENDPOINT = 'https://fal.run/fal-ai/flux-pulid';
 const TIMEOUT_MS     = 120_000;
@@ -73,10 +73,11 @@ export const generateTransformedImage = async (
 
   const prompt         = buildPulidPrompt(job, ageStr, gender, eyewear, subjectAge);
   const jobNegative    = JOB_NEGATIVES[job] ?? '';
+  const childNegative = subjectAge === 'child' ? getChildNegativePrompt(ageStr) : '';
   const negativePrompt = buildNegativePrompt(
     ageStr,
     gender,
-    [getEyewearNegative(eyewear), jobNegative].filter(Boolean).join(', '),
+    [getEyewearNegative(eyewear), jobNegative, childNegative].filter(Boolean).join(', '),
   );
 
   let { id_weight, start_step, guidance_scale } = getPulidParams(ageStr, gender);
@@ -87,9 +88,12 @@ export const generateTransformedImage = async (
   console.log(`[Fal] 안경 PuLID: id=${id_weight}, step=${start_step}`);
 
   if (subjectAge === 'child') {
-    const adjust = getChildAgeWeightAdjust(ageStr);
-    id_weight = Math.max(id_weight + adjust, 0.85);
-    console.log(`[Fal] 어린이 보정: id_weight → ${id_weight.toFixed(2)}`);
+    const childAdjust = getChildPulidAdjust(ageStr);
+    id_weight = Math.max(id_weight + childAdjust.idWeightDelta, childAdjust.minIdWeight);
+    start_step = Math.max(start_step, childAdjust.startStep);
+    console.log(
+      `[Fal] 어린이→${ageStr} 보정: id=${id_weight.toFixed(2)}, step=${start_step}`,
+    );
   }
 
   console.log('[Fal] 프롬프트 앞부분:', prompt.slice(0, 140));
