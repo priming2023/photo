@@ -51,6 +51,51 @@ const loadImage = async (src: string): Promise<HTMLImageElement> => {
   });
 };
 
+const drawImageFit = (
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  mirror: boolean,
+) => {
+  const imgAspect = img.width / img.height;
+  const boxAspect = w / h;
+  let drawW: number;
+  let drawH: number;
+
+  if (imgAspect > boxAspect) {
+    drawW = w;
+    drawH = img.height * (w / img.width);
+  } else {
+    drawH = h;
+    drawW = img.width * (h / img.height);
+  }
+
+  const drawX = x + (w - drawW) / 2;
+  const drawY = y + (h - drawH) / 2;
+
+  ctx.save();
+  ctx.filter = 'grayscale(100%) contrast(150%) brightness(120%)';
+  ctx.beginPath();
+  ctx.rect(x, y, w, h);
+  ctx.clip();
+
+  if (mirror) {
+    ctx.translate(x + w / 2, y + h / 2);
+    ctx.scale(-1, 1);
+    ctx.drawImage(img, drawX - x - w / 2, drawY - y - h / 2, drawW, drawH);
+  } else {
+    ctx.drawImage(img, drawX, drawY, drawW, drawH);
+  }
+
+  ctx.restore();
+  ctx.strokeStyle = '#000000';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(x, y, w, h);
+};
+
 const drawImageCover = (
   ctx: CanvasRenderingContext2D,
   img: HTMLImageElement,
@@ -190,12 +235,12 @@ export const renderReceiptPreview = async ({
   const img2Y = 120 + imgHeight + 20;
   try {
     const futureImg = await loadImage(futureSrc);
-    drawImageCover(ctx, futureImg, 20, img2Y, imgWidth, imgHeight, true, 'upper-body');
+    drawImageFit(ctx, futureImg, 20, img2Y, imgWidth, imgHeight, true);
   } catch (e) {
     console.error('변환 이미지 렌더 실패, 원본으로 대체:', e);
     try {
       const fallback = await loadImage(originalImage);
-      drawImageCover(ctx, fallback, 20, img2Y, imgWidth, imgHeight, true, 'upper-body');
+      drawImageFit(ctx, fallback, 20, img2Y, imgWidth, imgHeight, true);
     } catch { /* skip */ }
   }
 

@@ -1,109 +1,47 @@
-/**
- * 촬영 사진에서 안경 착용 여부 추정
- *
- * 원칙:
- *  - 미착용자에게 안경 추가 = 최악 → 착용은 매우 확실할 때만
- *  - 그 외(불확실·미착용) → 안경 추가 금지 프롬프트 적용
- */
+import { uploadToFalCdn } from './falCdnUpload';
+
+const MOONDREAM_ENDPOINT = 'https://fal.run/fal-ai/moondream2/visual-query';
 
 export type EyewearState = 'wearing' | 'not_wearing';
 
-const loadImage = (src: string): Promise<HTMLImageElement> =>
-  new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error('이미지 로드 실패'));
-    img.src = src;
-  });
-
-const lumAt = (data: Uint8ClampedArray, size: number, x: number, y: number): number => {
-  const i = (y * size + x) * 4;
-  return 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
-};
-
-const scoreFrameLines = (
-  data: Uint8ClampedArray,
-  size: number,
-  y0: number, y1: number,
-  x0: number, x1: number,
-): number => {
-  let score = 0;
-  for (let y = y0; y < y1; y++) {
-    let run = 0;
-    for (let x = x0; x < x1; x++) {
-      if (lumAt(data, size, x, y) < 70) {
-        run++;
-      } else if (run >= 8) {
-        score += run;
-        run = 0;
-      } else {
-        run = 0;
-      }
-    }
-    if (run >= 8) score += run;
-  }
-  return score;
-};
-
-const analyzeEyewear = (img: HTMLImageElement): EyewearState => {
-  const size = 320;
-  const canvas = document.createElement('canvas');
-  canvas.width = size;
-  canvas.height = size;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return 'not_wearing';
-
-  ctx.drawImage(img, 0, 0, size, size);
-  const data = ctx.getImageData(0, 0, size, size).data;
-
-  const yStart = Math.floor(size * 0.30);
-  const yEnd   = Math.floor(size * 0.50);
-
-  const leftScore = scoreFrameLines(
-    data, size, yStart, yEnd,
-    Math.floor(size * 0.15), Math.floor(size * 0.42),
-  );
-  const rightScore = scoreFrameLines(
-    data, size, yStart, yEnd,
-    Math.floor(size * 0.58), Math.floor(size * 0.85),
-  );
-  const bridgeScore = scoreFrameLines(
-    data, size, yStart, yEnd,
-    Math.floor(size * 0.42), Math.floor(size * 0.58),
-  );
-  const cheekScore = scoreFrameLines(
-    data, size,
-    Math.floor(size * 0.54), Math.floor(size * 0.68),
-    Math.floor(size * 0.20), Math.floor(size * 0.80),
-  );
-
-  const eyeTotal = leftScore + rightScore + bridgeScore;
-  const ratio = eyeTotal / Math.max(cheekScore, 1);
-  const symmetry = Math.min(leftScore, rightScore) / Math.max(leftScore, rightScore, 1);
-
-  // 착용: 양쪽 대칭 + 브릿지 + 높은 점수 모두 필요 (오탐 최소화)
-  const wearing =
-    leftScore > 40 &&
-    rightScore > 40 &&
-    bridgeScore > 18 &&
-    eyeTotal > 130 &&
-    ratio > 1.8 &&
-    symmetry > 0.6;
-
-  console.log(
-    `[Eyewear] L=${leftScore} R=${rightScore} B=${bridgeScore} ` +
-    `ratio=${ratio.toFixed(2)} sym=${symmetry.toFixed(2)} → ${wearing ? '✅착용' : '❌미착용'}`,
-  );
-  return wearing ? 'wearing' : 'not_wearing';
-};
-
-export const detectEyewear = async (imageSrc: string): Promise<EyewearState> => {
+/**
+ * Fal Vision(moondream2)으로 안경 착용 여부 확인
+ * — canvas 휴리스틱 오탐 대비, 사용자 선택이 없을 때만 사용
+ */
+export const detectEyewearVision = async (
+  imageSrc: string,
+  apiKey: string,
+): Promise<EyewearState | null> => {
   try {
-    const img = await loadImage(imageSrc);
-    return analyzeEyewear(img);
+    let imageUrl = imageSrc;
+    if (imageSrc.startsWith('data:')) {
+      imageUrl = await uploadToFalCdn(imageSrc, apiKey);
+    }
+
+    const res = await fetch(MOONDREAM_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        Authorization: `Key ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        image_url: imageUrl,
+        prompt: 'Is this person wearing eyeglasses or spectacles on their eyes? Answer only yes or no.',
+      }),
+    });
+
+    if (!res.ok) return null;
+
+    const data = await res.json() as { output?: string };
+    const answer = (data.output || '').toLowerCase().trim();
+    console.log('[Eyewear Vision]', answer);
+
+    if (/\byes\b/.test(answer)) return 'wearing';
+    if (/\bno\b/.test(answer)) return 'not_wearing';
+    return null;
   } catch (e) {
-    console.warn('[Eyewear] 감지 실패 → 미착용 처리:', e);
-    return 'not_wearing';
+    console.warn('[Eyewear Vision] 실패:', e);
+    return null;
   }
 };
 
@@ -116,9 +54,9 @@ export const getEyewearPrompt = (state: EyewearState): string => {
     ].join(', ');
   }
   return [
-    'bare eyes with no eyewear',
-    'no eyeglasses no spectacles no sunglasses on face',
-    'do not add any glasses or eyewear',
+    'ABSOLUTELY NO eyeglasses NO spectacles NO sunglasses on face',
+    'bare eyes clearly visible without any eyewear frames',
+    'do not add glasses under any circumstances',
   ].join(', ');
 };
 
@@ -135,16 +73,20 @@ export const getEyewearNegative = (state: EyewearState): string => {
     'wire-rim glasses',
     'rimless glasses',
     'thick-frame glasses',
+    'frameless glasses',
     'adding eyewear',
     'wearing glasses',
+    'optical frames on face',
   ].join(', ');
 };
 
+/** 안경 미착용: 참조 얼굴(맨눈)을 빨리 고정 / 착용: 보존 강화 */
 export const getEyewearPulidAdjust = (
   state: EyewearState,
-): { idWeightBoost: number; startStepReduce: number } => {
+): { idWeightDelta: number; startStep: number } => {
   if (state === 'wearing') {
-    return { idWeightBoost: 0.02, startStepReduce: 1 };
+    return { idWeightDelta: 0.02, startStep: 2 };
   }
-  return { idWeightBoost: 0, startStepReduce: 0 };
+  // 미착용: 참조 사진의 맨눈을 빠르게 고정해 AI가 안경을 덧씌우지 못하게
+  return { idWeightDelta: 0.03, startStep: 2 };
 };

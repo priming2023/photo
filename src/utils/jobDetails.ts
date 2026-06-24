@@ -81,10 +81,10 @@ export const JOB_PROMPTS: Record<string, string> = {
     'stage smoke and blurred audience in background, confetti in air, ' +
     'charismatic passionate performing expression',
 
-  // 과학자 — 작은 시험관만 (플라스크는 AI가 거대하게 그림)
+  // 과학자 — 고글은 이마 위에만 (눈 가리면 안경처럼 오인됨)
   '과학자':
     'wearing a white lab coat with name badge on chest, ' +
-    'safety goggles clearly resting on forehead — key head-level identifier, ' +
+    'safety goggles pushed up on forehead above eyebrows NOT covering eyes — NOT eyeglasses, ' +
     'holding a small standard laboratory test tube at chest level in one hand, normal human-scale size about 15cm tall, NOT oversized, NOT a large flask, ' +
     'cool blue-white fluorescent laboratory lighting on face, research lab equipment softly blurred in background, ' +
     'intellectually focused analytical expression',

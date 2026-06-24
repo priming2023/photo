@@ -1,13 +1,17 @@
 import { buildPulidPrompt, buildNegativePrompt, getPulidParams } from './jobPrompts';
 import { uploadToFalCdn } from './falCdnUpload';
 import { cropToPortrait } from './imagePreprocess';
-import { detectEyewear, getEyewearNegative, getEyewearPulidAdjust } from './eyewearDetection';
+import {
+  type EyewearState,
+  detectEyewearVision,
+  getEyewearNegative,
+  getEyewearPulidAdjust,
+} from './eyewearDetection';
 import { detectSubjectAge, getChildAgeWeightAdjust } from './subjectAgeDetection';
 
 const PULID_ENDPOINT = 'https://fal.run/fal-ai/flux-pulid';
 const TIMEOUT_MS     = 120_000;
 
-// ─── 에러 파싱 ─────────────────────────────────────────────────────────────
 const parseFalError = (status: number, body: string): string => {
   try {
     const json   = JSON.parse(body) as { detail?: string };
@@ -24,27 +28,26 @@ const parseFalError = (status: number, body: string): string => {
   }
 };
 
-/**
- * 미래 모습 AI 변환 (flux-pulid)
- *
- * 파이프라인:
- *  1. 이미지 전처리 — 가로(16:9) → 세로 3:4 크롭 768×1024
- *     (얼굴이 이미지의 50% 이상을 차지하도록 → AI 집중도 극대화)
- *  2. Fal CDN 업로드 — base64보다 안정적, 품질 무손실
- *  3. flux-pulid 변환
- *     - start_step: 4  — PuLID 공식 권장값 (realistic images)
- *       step 0~3: 텍스트 프롬프트(직업·나이)로 자유 생성
- *       step 4~: 얼굴 ID 주입 → 얼굴 보존과 변환이 동시에 달성
- *     - id_weight 0.84~0.95: 닮음 우선 (PuLID 공식)
- *     - start_step 2~4: 공식 권장 범위 (5+ 금지 — 닮음 붕괴)
- *     - guidance 3.5 고정: fake CFG 자연스러운 실사
- *     - 노화는 프롬프트(머리색·주름)로 표현, 파라미터로 억지 금지
- */
+const resolveEyewear = async (
+  userWearsGlasses: boolean,
+  processedImage: string,
+  apiKey: string,
+): Promise<EyewearState> => {
+  if (!userWearsGlasses) {
+    // 사용자가 "안 씀" 선택 → 무조건 미착용 (자동 감지 무시)
+    return 'not_wearing';
+  }
+  // 착용 선택 시 Vision으로 한 번 더 확인 (오탐 방지)
+  const vision = await detectEyewearVision(processedImage, apiKey);
+  return vision === 'not_wearing' ? 'not_wearing' : 'wearing';
+};
+
 export const generateTransformedImage = async (
   base64Image: string,
   job: string,
   ageStr: string,
   gender: string,
+  wearsGlasses = false,
 ): Promise<string> => {
   const apiKey = import.meta.env.VITE_FAL_KEY as string | undefined;
 
@@ -54,7 +57,6 @@ export const generateTransformedImage = async (
     return '';
   }
 
-  // 1. 이미지 전처리: 가로 → 세로 portrait 크롭
   let processedImage: string;
   try {
     processedImage = await cropToPortrait(base64Image);
@@ -64,7 +66,6 @@ export const generateTransformedImage = async (
     processedImage = base64Image;
   }
 
-  // 2. Fal CDN 업로드
   let cdnUrl: string;
   try {
     cdnUrl = await uploadToFalCdn(processedImage, apiKey);
@@ -76,38 +77,32 @@ export const generateTransformedImage = async (
       : `data:image/jpeg;base64,${processedImage}`;
   }
 
-  // 3. 안경 착용 여부 + 촬영자 연령대 병렬 감지
   const [eyewear, subjectAge] = await Promise.all([
-    detectEyewear(processedImage),
+    resolveEyewear(wearsGlasses, processedImage, apiKey),
     detectSubjectAge(processedImage),
   ]);
   console.log(
-    `[Fal] 안경: ${eyewear === 'wearing' ? '✅착용' : '❌미착용'} | ` +
+    `[Fal] 안경: ${eyewear === 'wearing' ? '✅착용' : '❌미착용'} (사용자: ${wearsGlasses ? '착용' : '안 씀'}) | ` +
     `피사체: ${subjectAge === 'child' ? '👶어린이' : '🧑성인'}`,
   );
 
-  // 4. flux-pulid 변환
   const prompt         = buildPulidPrompt(job, ageStr, gender, eyewear, subjectAge);
   const negativePrompt = buildNegativePrompt(ageStr, gender, getEyewearNegative(eyewear));
 
-  // 나이·성별·피사체연령 파라미터 조합
   let { id_weight, start_step, guidance_scale } = getPulidParams(ageStr, gender);
 
-  // 안경 착용·불확실: 참조 이미지 충실도 높여 안경 drift 방지
   const eyewearAdjust = getEyewearPulidAdjust(eyewear);
-  if (eyewearAdjust.idWeightBoost > 0) {
-    id_weight = Math.min(id_weight + eyewearAdjust.idWeightBoost, 0.95);
-    start_step = Math.max(start_step - eyewearAdjust.startStepReduce, 2);
-    console.log(`[Fal] 안경 보존 보정: id=${id_weight}, step=${start_step}`);
-  }
+  id_weight = Math.min(Math.max(id_weight + eyewearAdjust.idWeightDelta, 0.82), 0.95);
+  start_step = eyewearAdjust.startStep;
+  console.log(`[Fal] 안경 PuLID: id=${id_weight}, step=${start_step}`);
 
-  // 어린이 감지 시 id_weight 소폭 하향
   if (subjectAge === 'child') {
     const adjust = getChildAgeWeightAdjust(ageStr);
     id_weight = Math.max(id_weight + adjust, 0.85);
-    console.log(`[Fal] 어린이 보정: id_weight ${(id_weight - adjust).toFixed(2)} → ${id_weight.toFixed(2)}`);
+    console.log(`[Fal] 어린이 보정: id_weight → ${id_weight.toFixed(2)}`);
   }
-  console.log('[Fal] 프롬프트 앞부분:', prompt.slice(0, 120));
+
+  console.log('[Fal] 프롬프트 앞부분:', prompt.slice(0, 140));
   console.log(`[Fal] 파라미터 (${gender} ${ageStr}): id=${id_weight}, step=${start_step}, guidance=${guidance_scale}`);
 
   const controller = new AbortController();
@@ -124,16 +119,10 @@ export const generateTransformedImage = async (
       body: JSON.stringify({
         prompt,
         reference_image_url: cdnUrl,
-        // portrait_4_3: 단일 인물·얼굴 분할(split) 오류 방지
-        // (landscape_4_3는 가로 넓어 2명/반반 얼굴 아티팩트 발생 가능)
-        image_size: 'portrait_4_3',
-        num_inference_steps: 28,
+        // landscape: 상반신·직업 소품(청진기 등)이 프레임에 들어오도록
+        image_size: 'landscape_4_3',
+        num_inference_steps: 26,
         guidance_scale,
-        // ──────────────────────────────────────────────────────────────
-        // id_weight / start_step / guidance_scale: 나이별 동적 적용 (getPulidParams)
-        //   젊은 나이(25/35): id_weight↑ start_step↓ → 얼굴 강하게 고정
-        //   많은 나이(55/65): id_weight↓ start_step↑ → 노화가 표현되도록 편집 허용
-        //   (이전 고정값 0.92/3 → 65세도 젊은 얼굴이 고정되어 노화 안 됨)
         id_weight,
         start_step,
         true_cfg: 1,

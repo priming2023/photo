@@ -36,13 +36,16 @@ export const buildPulidPrompt = (
   const eyewearDesc = getEyewearPrompt(eyewear);
   const childGrowth = subjectAge === 'child' ? getChildGrowthPrompt(ageStr) : '';
 
-  return [
+  // 안경·구도를 최우선 배치 (PuLID가 뒤에서 덮어쓰지 못하게)
+  const parts = [
+    eyewearDesc ? `${eyewearDesc}.` : '',
     `Same person as reference photo, preserve identical face shape eyes nose lips jawline skin texture.`,
     `single person only, one face only, solo portrait, no duplicate faces, no split image.`,
-    eyewearDesc ? `${eyewearDesc}.` : '',
     childGrowth ? `${childGrowth}.` : '',
     `${age}-year-old Korean ${genderEng}. ${ageDesc}. ${genderStyle}.`,
     `${jobDetail}.`,
-    `Medium shot upper body from chest up, head shoulders and upper chest visible, natural arm's length distance, not close-up, soft natural lighting, authentic Korean photograph, subtle real skin texture.`,
-  ].filter(Boolean).join(' ');
+    `Waist-up three-quarter shot at natural distance, head shoulders chest and hands fully visible, occupational props clearly shown, not close-up not extreme close-up, candid natural photograph, soft daylight, subtle real skin texture, documentary portrait style.`,
+  ];
+
+  return parts.filter(Boolean).join(' ');
 };

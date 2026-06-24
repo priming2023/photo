@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 interface SelectionProps {
-  onComplete: (job: string, age: string, gender: string) => void;
+  onComplete: (job: string, age: string, gender: string, wearsGlasses: boolean) => void;
 }
 
 const JOBS = [
@@ -32,6 +32,7 @@ const Selection: React.FC<SelectionProps> = ({ onComplete }) => {
   const [selectedJob, setSelectedJob] = useState('');
   const [selectedAge, setSelectedAge] = useState('');
   const [selectedGender, setSelectedGender] = useState('');
+  const [wearsGlasses, setWearsGlasses] = useState<boolean | null>(null);
 
   return (
     <div className="flex flex-col w-full min-h-screen lg:h-full px-4 sm:px-8 lg:px-20 py-20 lg:py-16 max-w-[1920px] mx-auto animate-slide-up relative overflow-y-auto lg:overflow-hidden">
@@ -112,13 +113,41 @@ const Selection: React.FC<SelectionProps> = ({ onComplete }) => {
             </div>
           </div>
 
+          {/* 안경 착용 여부 */}
+          <div className="bg-white p-4 sm:p-6 rounded-2xl lg:rounded-[2.5rem] shadow-sm border border-gray-100 lg:flex-[0.6] flex flex-col">
+            <h3 className="text-base lg:text-xl font-bold mb-3 lg:mb-4 text-gray-500 flex items-center gap-2 lg:gap-3">
+              <span className="w-7 h-7 lg:w-8 lg:h-8 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-xs lg:text-sm shrink-0">4</span>
+              안경 착용
+            </h3>
+            <div className="grid grid-cols-2 gap-2 lg:gap-3 lg:flex-1">
+              {[
+                { value: false, label: '안 씀' },
+                { value: true, label: '착용' },
+              ].map(({ value, label }) => (
+                <button
+                  key={label}
+                  onClick={() => setWearsGlasses(value)}
+                  className={`rounded-xl lg:rounded-2xl border-2 text-lg lg:text-2xl font-bold transition-all duration-200 py-4 lg:py-0 ${
+                    wearsGlasses === value
+                      ? 'bg-amber-50 border-amber-400 text-amber-700 scale-105 shadow-md'
+                      : 'bg-gray-50 border-transparent text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <button
             onClick={() => {
-              if (selectedJob && selectedAge && selectedGender) onComplete(selectedJob, selectedAge, selectedGender);
+              if (selectedJob && selectedAge && selectedGender && wearsGlasses !== null) {
+                onComplete(selectedJob, selectedAge, selectedGender, wearsGlasses);
+              }
             }}
-            disabled={!selectedJob || !selectedAge || !selectedGender}
+            disabled={!selectedJob || !selectedAge || !selectedGender || wearsGlasses === null}
             className={`w-full lg:w-64 h-14 lg:h-auto rounded-2xl lg:rounded-[2.5rem] text-xl lg:text-3xl font-black transition-all duration-300 flex items-center justify-center gap-3 lg:gap-4 shrink-0 ${
-              selectedJob && selectedAge && selectedGender
+              selectedJob && selectedAge && selectedGender && wearsGlasses !== null
                 ? 'bg-gray-800 text-white hover:bg-black hover:scale-105 shadow-xl cursor-pointer'
                 : 'bg-gray-200 text-gray-400 cursor-not-allowed'
             }`}
