@@ -7,7 +7,12 @@ import {
   getEyewearPulidAdjust,
 } from './eyewearDetection';
 import { JOB_NEGATIVES } from './occupationPrompts';
-import { detectSubjectAge, getChildNegativePrompt, getChildPulidAdjust } from './subjectAgeDetection';
+import {
+  detectSubjectAge,
+  getChildNegativePrompt,
+  getChildPulidAdjust,
+  getEffectiveAgeStr,
+} from './subjectAgeDetection';
 
 const PULID_ENDPOINT = 'https://fal.run/fal-ai/flux-pulid';
 const TIMEOUT_MS     = 120_000;
@@ -71,16 +76,21 @@ export const generateTransformedImage = async (
     `피사체: ${subjectAge === 'child' ? '👶어린이' : '🧑성인'}`,
   );
 
-  const prompt         = buildPulidPrompt(job, ageStr, gender, eyewear, subjectAge);
+  const renderAgeStr = getEffectiveAgeStr(ageStr, subjectAge);
+  if (subjectAge === 'child' && renderAgeStr !== ageStr) {
+    console.log(`[Fal] 어린이 +10살 표현: 선택 ${ageStr} → AI ${renderAgeStr}`);
+  }
+
+  const prompt         = buildPulidPrompt(job, renderAgeStr, gender, eyewear, subjectAge);
   const jobNegative    = JOB_NEGATIVES[job] ?? '';
-  const childNegative = subjectAge === 'child' ? getChildNegativePrompt(ageStr) : '';
+  const childNegative  = subjectAge === 'child' ? getChildNegativePrompt(renderAgeStr) : '';
   const negativePrompt = buildNegativePrompt(
-    ageStr,
+    renderAgeStr,
     gender,
     [getEyewearNegative(eyewear), jobNegative, childNegative].filter(Boolean).join(', '),
   );
 
-  let { id_weight, start_step, guidance_scale } = getPulidParams(ageStr, gender);
+  let { id_weight, start_step, guidance_scale } = getPulidParams(renderAgeStr, gender);
 
   const eyewearAdjust = getEyewearPulidAdjust(eyewear);
   id_weight = Math.min(Math.max(id_weight + eyewearAdjust.idWeightDelta, 0.82), 0.95);
@@ -88,16 +98,20 @@ export const generateTransformedImage = async (
   console.log(`[Fal] 안경 PuLID: id=${id_weight}, step=${start_step}`);
 
   if (subjectAge === 'child') {
-    const childAdjust = getChildPulidAdjust(ageStr);
+    const childAdjust = getChildPulidAdjust(renderAgeStr);
     id_weight = Math.max(id_weight + childAdjust.idWeightDelta, childAdjust.minIdWeight);
     start_step = Math.max(start_step, childAdjust.startStep);
     console.log(
-      `[Fal] 어린이→${ageStr} 보정: id=${id_weight.toFixed(2)}, step=${start_step}`,
+      `[Fal] 어린이 PuLID 보정 (표현 ${renderAgeStr}): id=${id_weight.toFixed(2)}, step=${start_step}`,
     );
   }
 
   console.log('[Fal] 프롬프트 앞부분:', prompt.slice(0, 140));
-  console.log(`[Fal] 파라미터 (${gender} ${ageStr}): id=${id_weight}, step=${start_step}, guidance=${guidance_scale}`);
+  console.log(
+    `[Fal] 파라미터 (${gender} 선택${ageStr}` +
+    `${subjectAge === 'child' ? ` / 표현${renderAgeStr}` : ''}): ` +
+    `id=${id_weight}, step=${start_step}, guidance=${guidance_scale}`,
+  );
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);

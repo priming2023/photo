@@ -3,12 +3,16 @@
  *
  * 포토부스 주 이용층 = 어린이
  *  - 불확실·감지 실패 시 어린이로 처리
- *  - 임계값은 보수적으로(넓게) — 성인 오탐보다 어린이 미탐이 더 문제
  */
+
+import { parseAgeNumber } from './ageDescriptors';
 
 export type SubjectAgeCategory = 'child' | 'adult';
 
-/** 피부 분산 임계값 — 이 값 미만이면 어린이 (값을 올릴수록 어린이 판정 넓어짐) */
+/** 어린이로 판정 시 AI 표현 나이에 더하는 값 (선택 나이 + 10살) */
+export const CHILD_APPEARANCE_AGE_OFFSET = 10;
+
+const MAX_RENDER_AGE = 65;
 const CHILD_VARIANCE_THRESHOLD = 11;
 
 const loadImage = (src: string): Promise<HTMLImageElement> =>
@@ -93,102 +97,61 @@ export const detectSubjectAge = async (imageSrc: string): Promise<SubjectAgeCate
   }
 };
 
+export const formatAgeStr = (age: number): string => `${age}살`;
+
+/**
+ * AI 변환에 쓸 실제 표현 나이
+ * - 성인: 사용자가 선택한 나이 그대로
+ * - 어린이: 선택 나이 + 10살 (최대 65살)
+ *
+ * 예) 어린이 + 25살 선택 → AI는 35살로 표현
+ *     어린이 + 35살 선택 → AI는 45살로 표현
+ *
+ * 영수증·UI 라벨은 선택 나이(selectedAgeStr)를 그대로 표시
+ */
+export const getEffectiveAgeStr = (
+  selectedAgeStr: string,
+  subjectAge: SubjectAgeCategory,
+): string => {
+  if (subjectAge !== 'child') return selectedAgeStr;
+
+  const selected = parseAgeNumber(selectedAgeStr);
+  const adjusted = Math.min(selected + CHILD_APPEARANCE_AGE_OFFSET, MAX_RENDER_AGE);
+  return formatAgeStr(adjusted);
+};
+
 export interface ChildPulidAdjust {
   idWeightDelta: number;
   startStep: number;
   minIdWeight: number;
 }
 
-/**
- * 어린이 → 목표 나이 변환 시 PuLID 보정
- * id_weight를 더 낮춰 어린이 얼굴 고정을 풀고, start_step을 올려 성인 구조 반영
- */
-export const getChildPulidAdjust = (targetAgeStr: string): ChildPulidAdjust => {
-  const age = parseInt(targetAgeStr.replace(/[^0-9]/g, ''), 10) || 35;
+/** 어린이 참조 사진 → 성인 표현 시 PuLID 보정 (effectiveAge 기준) */
+export const getChildPulidAdjust = (effectiveAgeStr: string): ChildPulidAdjust => {
+  const age = parseAgeNumber(effectiveAgeStr);
 
-  if (age <= 25) {
-    return { idWeightDelta: -0.14, startStep: 4, minIdWeight: 0.76 };
-  }
   if (age <= 35) {
-    return { idWeightDelta: -0.11, startStep: 4, minIdWeight: 0.78 };
+    return { idWeightDelta: -0.08, startStep: 3, minIdWeight: 0.80 };
   }
   if (age <= 45) {
-    return { idWeightDelta: -0.07, startStep: 3, minIdWeight: 0.80 };
+    return { idWeightDelta: -0.06, startStep: 3, minIdWeight: 0.82 };
   }
-  return { idWeightDelta: -0.04, startStep: 3, minIdWeight: 0.82 };
+  return { idWeightDelta: -0.04, startStep: 2, minIdWeight: 0.84 };
 };
 
-const ADULT_BONE_STRUCTURE =
-  'fully mature adult Korean facial bone structure, pronounced adult jawline and chin, ' +
-  'adult nose bridge, adult cheekbones, longer adult face proportions, grown-up head size';
-
-/**
- * 어린이(약 7~12세) 촬영 → 목표 나이로 성장 변환 프롬프트
- * 10대 어린이는 목표보다 더 성인처럼 보이도록 강하게 표현
- */
-export const getChildGrowthPrompt = (targetAgeStr: string): string => {
-  const age = parseInt(targetAgeStr.replace(/[^0-9]/g, ''), 10) || 35;
-
-  const noChild =
-    'NOT a child face NOT baby features NOT toddler NOT infant NOT round baby cheeks ' +
-    'NOT chubby child cheeks NOT schoolchild appearance NOT kindergarten age';
-
-  if (age <= 25) {
-    return [
-      'CRITICAL: transform a young child into a clearly grown 25-year-old Korean adult',
-      'must look solidly mid-twenties NOT teenager NOT adolescent NOT 18 years old',
-      ADULT_BONE_STRUCTURE,
-      noChild,
-      'mature adult woman or man in their twenties with fully developed face',
-    ].join(', ');
-  }
-
-  if (age <= 35) {
-    return [
-      'CRITICAL: transform a young child into a clearly grown 35-year-old Korean adult',
-      'must look solidly in mid-thirties NOT twenties NOT teenager NOT young adult',
-      ADULT_BONE_STRUCTURE,
-      noChild,
-      'confident mature adult in their thirties with fully developed adult features',
-    ].join(', ');
-  }
-
-  if (age <= 45) {
-    return [
-      'Transform young child into a 45-year-old Korean adult with clear middle-aged appearance',
-      ADULT_BONE_STRUCTURE,
-      noChild,
-      'visible mature adult features appropriate for mid-forties',
-    ].join(', ');
-  }
-
+/** 어린이 참조 → effectiveAge 성인으로 성장 (effectiveAge는 이미 +10 반영됨) */
+export const getChildGrowthPrompt = (effectiveAgeStr: string): string => {
+  const age = parseAgeNumber(effectiveAgeStr);
   return [
-    'Transform young child into significantly older Korean adult at target age',
-    ADULT_BONE_STRUCTURE,
-    noChild,
+    `Transform young child into a fully grown ${age}-year-old Korean adult`,
+    'mature adult jaw nose bridge and cheekbones, fully grown face',
+    'NOT child face NOT baby features NOT toddler NOT round baby cheeks',
   ].join(', ');
 };
 
-/** 어린이 촬영 시 목표 나이를 더 확실히 맞추는 추가 묘사 */
-export const getChildAgeBoost = (targetAgeStr: string, gender: string): string => {
-  const age = parseInt(targetAgeStr.replace(/[^0-9]/g, ''), 10) || 35;
-  const eng = gender === '여자' ? 'woman' : 'man';
-
-  if (age <= 25) {
-    return `appears exactly 25 years old Korean ${eng}, clearly adult not teen, not childlike`;
-  }
-  if (age <= 35) {
-    return `appears exactly 35 years old Korean ${eng}, clearly mature adult not in twenties`;
-  }
-  if (age <= 45) {
-    return `appears exactly 45 years old Korean ${eng}, clearly middle-aged adult`;
-  }
-  return `appears exactly ${age} years old Korean ${eng}, fully grown adult`;
-};
-
-/** 어린이 촬영 시 네거티브 — 유아·아동 얼굴 강력 차단 */
-export const getChildNegativePrompt = (targetAgeStr: string): string => {
-  const age = parseInt(targetAgeStr.replace(/[^0-9]/g, ''), 10) || 35;
+/** 어린이 촬영 시 유아·아동 얼굴 차단 (effectiveAge 기준) */
+export const getChildNegativePrompt = (effectiveAgeStr: string): string => {
+  const age = parseAgeNumber(effectiveAgeStr);
 
   const base = [
     'baby face',
@@ -197,23 +160,15 @@ export const getChildNegativePrompt = (targetAgeStr: string): string => {
     'infant',
     'chubby round cheeks',
     'schoolchild',
-    'preteen',
     'kindergarten age',
     'juvenile features',
-    'child proportions',
-    'doll-like child face',
-    'elementary school student appearance',
   ].join(', ');
 
-  if (age <= 25) {
-    return `${base}, teenager, adolescent, looks 15 years old, looks 18 years old, too young for twenties, teenage girl, teenage boy`;
-  }
   if (age <= 35) {
-    return `${base}, teenager, looks 20 years old, looks 22 years old, too young for thirties, young adult in twenties`;
+    return `${base}, teenager, adolescent, too young, looks under ${age - 5} years old`;
   }
-  return `${base}, childlike adult`;
+  if (age <= 45) {
+    return `${base}, teenager, looks in twenties, too young for forties`;
+  }
+  return `${base}, childlike adult, too young for age`;
 };
-
-/** @deprecated getChildPulidAdjust 사용 */
-export const getChildAgeWeightAdjust = (targetAgeStr: string): number =>
-  getChildPulidAdjust(targetAgeStr).idWeightDelta;
