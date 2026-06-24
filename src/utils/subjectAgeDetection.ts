@@ -9,10 +9,11 @@ import { parseAgeNumber } from './ageDescriptors';
 
 export type SubjectAgeCategory = 'child' | 'adult';
 
-/** 어린이로 판정 시 AI 표현 나이에 더하는 값 (선택 나이 + 10살) */
-export const CHILD_APPEARANCE_AGE_OFFSET = 10;
+/** 어린이로 판정 시 AI 표현 나이에 더하는 값 (선택 나이 + 15살) */
+export const CHILD_APPEARANCE_AGE_OFFSET = 15;
 
 const MAX_RENDER_AGE = 65;
+const AGE_TIERS = [25, 35, 45, 55, 65] as const;
 const CHILD_VARIANCE_THRESHOLD = 11;
 
 const loadImage = (src: string): Promise<HTMLImageElement> =>
@@ -99,13 +100,19 @@ export const detectSubjectAge = async (imageSrc: string): Promise<SubjectAgeCate
 
 export const formatAgeStr = (age: number): string => `${age}살`;
 
+/** 중간 나이(예: 40)를 아래가 아닌 위 구간(45)으로 스냅 — 어린이 표현이 실제로 더 들어 보이게 */
+const snapAgeUp = (age: number): number => {
+  const tier = AGE_TIERS.find((k) => k >= age);
+  return tier ?? MAX_RENDER_AGE;
+};
+
 /**
  * AI 변환에 쓸 실제 표현 나이
- * - 성인: 사용자가 선택한 나이 그대로
- * - 어린이: 선택 나이 + 10살 (최대 65살)
+ * - 성인: 사용자가 선택한 나이 그대로 (남녀 동일)
+ * - 어린이: 선택 나이 + 15살 → 위 구간으로 스냅 (최대 65살, 남녀 동일)
  *
- * 예) 어린이 + 25살 선택 → AI는 35살로 표현
- *     어린이 + 35살 선택 → AI는 45살로 표현
+ * 예) 어린이 + 25살 선택 → 40 → 45살 표현
+ *     어린이 + 35살 선택 → 50 → 55살 표현
  *
  * 영수증·UI 라벨은 선택 나이(selectedAgeStr)를 그대로 표시
  */
@@ -116,8 +123,8 @@ export const getEffectiveAgeStr = (
   if (subjectAge !== 'child') return selectedAgeStr;
 
   const selected = parseAgeNumber(selectedAgeStr);
-  const adjusted = Math.min(selected + CHILD_APPEARANCE_AGE_OFFSET, MAX_RENDER_AGE);
-  return formatAgeStr(adjusted);
+  const raw = Math.min(selected + CHILD_APPEARANCE_AGE_OFFSET, MAX_RENDER_AGE);
+  return formatAgeStr(snapAgeUp(raw));
 };
 
 export interface ChildPulidAdjust {
@@ -131,7 +138,7 @@ export const getChildPulidAdjust = (effectiveAgeStr: string): ChildPulidAdjust =
   const age = parseAgeNumber(effectiveAgeStr);
 
   if (age <= 35) {
-    return { idWeightDelta: -0.08, startStep: 3, minIdWeight: 0.80 };
+    return { idWeightDelta: -0.10, startStep: 4, minIdWeight: 0.78 };
   }
   if (age <= 45) {
     return { idWeightDelta: -0.06, startStep: 3, minIdWeight: 0.82 };
@@ -139,7 +146,7 @@ export const getChildPulidAdjust = (effectiveAgeStr: string): ChildPulidAdjust =
   return { idWeightDelta: -0.04, startStep: 2, minIdWeight: 0.84 };
 };
 
-/** 어린이 참조 → effectiveAge 성인으로 성장 (effectiveAge는 이미 +10 반영됨) */
+/** 어린이 참조 → effectiveAge 성인으로 성장 (effectiveAge는 +15·상향 스냅 반영) */
 export const getChildGrowthPrompt = (effectiveAgeStr: string): string => {
   const age = parseAgeNumber(effectiveAgeStr);
   return [

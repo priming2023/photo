@@ -8,6 +8,7 @@ import {
 } from './eyewearDetection';
 import { JOB_NEGATIVES } from './occupationPrompts';
 import {
+  CHILD_APPEARANCE_AGE_OFFSET,
   detectSubjectAge,
   getChildNegativePrompt,
   getChildPulidAdjust,
@@ -78,7 +79,9 @@ export const generateTransformedImage = async (
 
   const renderAgeStr = getEffectiveAgeStr(ageStr, subjectAge);
   if (subjectAge === 'child' && renderAgeStr !== ageStr) {
-    console.log(`[Fal] 어린이 +10살 표현: 선택 ${ageStr} → AI ${renderAgeStr}`);
+    console.log(
+      `[Fal] 어린이 +${CHILD_APPEARANCE_AGE_OFFSET}살 표현 (남녀 동일): 선택 ${ageStr} → AI ${renderAgeStr}`,
+    );
   }
 
   const prompt         = buildPulidPrompt(job, renderAgeStr, gender, eyewear, subjectAge);
