@@ -1,4 +1,4 @@
-import { buildPulidPrompt, buildNegativePrompt, getPulidParams, ANTI_SPLIT_NEGATIVE } from './jobPrompts';
+import { buildPulidPrompt, buildNegativePrompt, getPulidParams } from './jobPrompts';
 import { uploadToFalCdn } from './falCdnUpload';
 import { cropToPortrait } from './imagePreprocess';
 import {
@@ -10,8 +10,7 @@ import { JOB_NEGATIVES } from './occupationPrompts';
 import {
   CHILD_APPEARANCE_AGE_OFFSET,
   detectSubjectAge,
-  getChildNegativePrompt,
-  getChildPulidAdjust,
+  getChildAgeWeightAdjust,
   getEffectiveAgeStr,
 } from './subjectAgeDetection';
 
@@ -80,17 +79,16 @@ export const generateTransformedImage = async (
   const renderAgeStr = getEffectiveAgeStr(ageStr, subjectAge);
   if (subjectAge === 'child' && renderAgeStr !== ageStr) {
     console.log(
-      `[Fal] 어린이 +${CHILD_APPEARANCE_AGE_OFFSET}살 표현 (남녀 동일): 선택 ${ageStr} → AI ${renderAgeStr}`,
+      `[Fal] 어린이 +${CHILD_APPEARANCE_AGE_OFFSET}살: 선택 ${ageStr} → AI ${renderAgeStr}`,
     );
   }
 
   const prompt         = buildPulidPrompt(job, renderAgeStr, gender, eyewear, subjectAge);
   const jobNegative    = JOB_NEGATIVES[job] ?? '';
-  const childNegative  = subjectAge === 'child' ? getChildNegativePrompt(renderAgeStr) : '';
   const negativePrompt = buildNegativePrompt(
     renderAgeStr,
     gender,
-    [ANTI_SPLIT_NEGATIVE, getEyewearNegative(eyewear), jobNegative, childNegative].filter(Boolean).join(', '),
+    [getEyewearNegative(eyewear), jobNegative].filter(Boolean).join(', '),
   );
 
   let { id_weight, start_step, guidance_scale } = getPulidParams(renderAgeStr, gender);
@@ -101,12 +99,9 @@ export const generateTransformedImage = async (
   console.log(`[Fal] 안경 PuLID: id=${id_weight}, step=${start_step}`);
 
   if (subjectAge === 'child') {
-    const childAdjust = getChildPulidAdjust(renderAgeStr);
-    id_weight = Math.max(id_weight + childAdjust.idWeightDelta, childAdjust.minIdWeight);
-    start_step = Math.max(start_step, childAdjust.startStep);
-    console.log(
-      `[Fal] 어린이 PuLID 보정 (표현 ${renderAgeStr}): id=${id_weight.toFixed(2)}, step=${start_step}`,
-    );
+    const adjust = getChildAgeWeightAdjust(renderAgeStr);
+    id_weight = Math.max(id_weight + adjust, 0.85);
+    console.log(`[Fal] 어린이 보정: id_weight → ${id_weight.toFixed(2)}`);
   }
 
   console.log('[Fal] 프롬프트 앞부분:', prompt.slice(0, 140));
@@ -130,7 +125,6 @@ export const generateTransformedImage = async (
       body: JSON.stringify({
         prompt,
         reference_image_url: cdnUrl,
-        // portrait: PuLID 참조(3:4)와 맞춰 split face(좌우 2얼굴) 방지
         image_size: 'portrait_4_3',
         num_inference_steps: 26,
         guidance_scale,
