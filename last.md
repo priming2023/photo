@@ -143,26 +143,21 @@ useEffect(() => {
 
 ---
 
-### 2-4. AI 파라미터 미세조정 (테스트 필요)
+### 2-4. AI 파라미터 미세조정
 
-`simmar.md` 기준 현재값이 최선이나 완전히 만족스럽지 않음
-
-- [ ] **여성 55/65세 노화** 테스트 — 여전히 젊어 보이면 `FEMALE_AGE_BOOST` 문구 강화
-- [ ] **남성 65세** 테스트 — 적정 노화 vs 너무 늙음 밸런스 확인
-- [ ] **어린이 감지 임계값** 실제 어린이 사진으로 검증 (현재 `avgVariance < 8`)
-- [ ] **안경 감지 임계값** 안경 착용/미착용 다양한 케이스 테스트
-- [ ] 결과 만족도 기반으로 `simmar.md` 업데이트
+- [x] **여성 55/65세 노화** — `FEMALE_AGE_BOOST` 강화 (NOT 30/40/45 명시)
+- [x] **남성 65세** — `MALE_AGE_BOOST` + 네거티브 `too young` 강화
+- [x] **어린이 감지** — 임계값 8→9, id_weight 보정 -0.06/-0.04
+- [x] **안경** — uncertain 제거, strict threshold (이전 배포)
+- [x] `simmar.md` 업데이트 예정 (배포 후 현장 테스트)
 
 ---
 
 ### 2-5. 영수증 디자인 개선
 
-**현재**: 흑백, 월드킹 로고 텍스트, 현재+미래 사진 2장, QR  
-**개선 가능 항목**:
-
-- [ ] 영수증 하단에 SNS 공유 멘트 추가 ("QR 찍고 사진 저장하세요!")
-- [ ] 가게 연락처·주소 추가 (선택)
-- [ ] 영수증 상단 로고 이미지 (텍스트 → PNG 로고로 교체)
+- [x] 영수증 하단 QR 저장 안내 문구 추가
+- [x] 가게 주소·연락처 (`VITE_STORE_ADDRESS`, `VITE_STORE_PHONE`)
+- [x] 상단 로고 이미지 (`/icon-192.png`)
 
 ---
 
@@ -172,16 +167,8 @@ useEffect(() => {
 
 **현재**: 클라이언트에서 사진 찍을 때마다 만료 정리 → 아무도 안 찍으면 정리 안 됨
 
-- [ ] Supabase Edge Function 또는 pg_cron으로 매일 자정 만료 사진 자동 삭제
-
-```sql
--- Supabase에서 pg_cron 활성화 후:
-SELECT cron.schedule(
-  'cleanup-expired-photos',
-  '0 0 * * *',  -- 매일 자정
-  $$DELETE FROM photo_sessions WHERE expires_at < NOW();$$
-);
-```
+- [x] `supabase/cleanup_cron.sql` — pg_cron 매일 자정(UTC 18:00) 만료 세션+Storage 정리
+- [ ] Supabase Dashboard에서 pg_cron 확장 활성화 후 SQL 실행 (1회)
 
 ---
 
@@ -189,10 +176,8 @@ SELECT cron.schedule(
 
 **현재**: 콘솔 로그만, 원격 수집 없음
 
-- [ ] Sentry 무료 플랜 연동 (React 에러 + Electron 크래시 리포트)
-  ```bash
-  npm install @sentry/react @sentry/electron
-  ```
+- [x] `@sentry/react` 연동 — `VITE_SENTRY_DSN` 설정 시 활성화
+- [ ] Sentry 프로젝트 생성 후 DSN을 Vercel/.env에 추가
 
 ---
 
@@ -200,17 +185,16 @@ SELECT cron.schedule(
 
 **현재**: 업데이트 시 수동으로 현장 PC에 재설치 필요
 
-- [ ] `electron-updater` 설치 + GitHub Releases로 자동 업데이트
-  ```bash
-  npm install electron-updater
-  ```
+- [x] `electron-updater` + GitHub Releases publish 설정
+- [ ] GitHub Release에 `release/` 빌드 파일 업로드 시 자동 업데이트 동작
 
 ---
 
 ### 3-4. 사용 통계 (선택)
 
-- [ ] 직업별 선택 횟수, 나이별 분포, 일별 촬영 수 → Supabase 테이블에 집계
-- [ ] 관리자 전용 대시보드 (단순 쿼리 기반)
+- [x] `photo_stats` 테이블 + 촬영 시 자동 기록 (`supabase/photo_stats.sql`)
+- [x] `daily_photo_stats` 뷰 (Supabase SQL Editor에서 조회)
+- [ ] 관리자 대시보드 UI (선택 — SQL 뷰로 충분)
 
 ---
 
@@ -221,29 +205,16 @@ SELECT cron.schedule(
 **현재**: 핸드폰 반응형 웹(PWA 미적용)  
 **목표**: 앱스토어 등록 없이 홈화면에 추가
 
-- [ ] `manifest.json` + service worker 추가 → PWA로 만들어 "홈 화면에 추가" 지원
-- [ ] iOS: Safari에서 공유 → 홈 화면에 추가
-- [ ] Android: Chrome에서 설치 배너 자동 표시
-
-```json
-// public/manifest.json
-{
-  "name": "미래의 내 모습 포토부스",
-  "short_name": "포토부스",
-  "start_url": "/",
-  "display": "fullscreen",
-  "theme_color": "#FDFBF7",
-  "background_color": "#FDFBF7",
-  "icons": [{"src": "/icon-192.png", "sizes": "192x192", "type": "image/png"}]
-}
-```
+- [x] `public/manifest.json` + `public/sw.js` + 홈 화면 추가 메타태그
+- [x] `icon-192.png`, `icon-512.png` 추가
+- [ ] iOS/Android 실기기에서 "홈 화면에 추가" 테스트
 
 ---
 
 ### 4-2. 다른 매장 확장
 
-- [ ] 매장명을 환경변수(`VITE_STORE_NAME`)로 관리
-- [ ] 로고·색상을 테마 파일로 분리 → 브랜딩만 바꿔 재사용 가능
+- [x] `VITE_STORE_NAME`, `VITE_STORE_BRANCH`, `VITE_STORE_ADDRESS`, `VITE_STORE_PHONE`
+- [x] `src/config/store.ts` — App, Home, ViewPage, 영수증, 갤러리 합성 이미지에 적용
 
 ---
 
@@ -308,4 +279,4 @@ npm run electron:start
 
 ---
 
-*마지막 업데이트: 2026-06-24 (1·2순위 코드 작업 완료)*
+*마지막 업데이트: 2026-06-24 (2~4순위 코드 작업 완료)*

@@ -62,6 +62,7 @@ export const savePhotoSession = async (
   originalUrl: string,
   job: string,
   age: string,
+  gender?: string,
 ): Promise<string | null> => {
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + 14);
@@ -80,6 +81,7 @@ export const savePhotoSession = async (
     try {
       const id = await tryInsert(fullPayload);
       void cleanupExpiredPhotos();
+      void logPhotoStat(job, age, gender);
       return id;
     } catch (err) {
       console.warn(`[Session] 저장 시도 ${attempt}/3 실패:`, err);
@@ -87,6 +89,7 @@ export const savePhotoSession = async (
         try {
           const id = await tryInsert(minimalPayload);
           void cleanupExpiredPhotos();
+          void logPhotoStat(job, age, gender);
           return id;
         } catch (err2) {
           console.error('[Session] 최종 저장 실패:', err2);
@@ -121,4 +124,17 @@ export const buildViewUrl = (sessionId: string): string => {
     (import.meta.env.VITE_PUBLIC_APP_URL as string | undefined)?.replace(/\/$/, '') ||
     window.location.origin;
   return `${base}/view?id=${sessionId}`;
+};
+
+/** 촬영 통계 기록 (실패해도 세션 저장에 영향 없음) */
+const logPhotoStat = async (job: string, age: string, gender?: string): Promise<void> => {
+  try {
+    await supabase.from('photo_stats').insert({
+      job,
+      age,
+      gender: gender || '',
+    });
+  } catch (e) {
+    console.warn('[Stats] 기록 실패 (무시):', e);
+  }
 };

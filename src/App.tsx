@@ -5,6 +5,7 @@ import Camera from './components/Camera';
 import Processing from './components/Processing';
 import Result from './components/Result';
 import ViewPage from './components/ViewPage';
+import { storeConfig } from './config/store';
 
 const viewId = new URLSearchParams(window.location.search).get('id');
 const isViewPage = window.location.pathname.startsWith('/view') && !!viewId;
@@ -62,7 +63,7 @@ function App() {
 
       {screen !== 'HOME' && (
         <div className="absolute top-4 left-4 lg:top-8 lg:left-10 z-50 font-black text-base lg:text-2xl tracking-widest text-gray-800">
-          월드킹 <span className="font-medium text-gray-500">당진서산점</span>
+          월드킹 <span className="font-medium text-gray-500">{storeConfig.branch}</span>
         </div>
       )}
 
@@ -116,6 +117,7 @@ function App() {
             transformedImage={transformedImage || undefined}
             job={selections.job}
             age={selections.age}
+            gender={selections.gender}
             onRetake={() => {
               setCapturedImage(null);
               setTransformedImage(null);

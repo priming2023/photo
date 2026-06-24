@@ -1,7 +1,8 @@
 import QRCode from 'qrcode';
+import { storeConfig, storeDisplayName } from '../config/store';
 
 const PRINT_WIDTH = 495;
-const PRINT_HEIGHT = 799;
+const PRINT_HEIGHT = 880;
 const IMAGE_LOAD_TIMEOUT_MS = 8_000;
 
 /** 외부 URL → blob URL 변환 (캔버스 CORS 문제 방지) */
@@ -68,14 +69,11 @@ const drawImageCover = (
   let drawY: number;
 
   if (imgAspect > boxAspect) {
-    // 이미지가 가로형: 높이에 맞추고 좌우 중앙 자름
     drawH = h;
     drawW = img.width * (h / img.height);
     drawX = x - (drawW - w) / 2;
     drawY = y;
   } else {
-    // 이미지가 세로형(portrait): 너비에 맞추고 상하 자름
-    // Method A: top 정렬 → 얼굴이 항상 상단에 표시
     drawW = w;
     drawH = img.height * (w / img.width);
     drawX = x;
@@ -113,6 +111,39 @@ const drawQrPlaceholder = (ctx: CanvasRenderingContext2D) => {
   ctx.fillText('QR CODE', PRINT_WIDTH - 50, 55);
 };
 
+const drawFooter = (ctx: CanvasRenderingContext2D, hasQr: boolean) => {
+  const y = PRINT_HEIGHT - 110;
+
+  ctx.beginPath();
+  ctx.setLineDash([4, 4]);
+  ctx.moveTo(20, y);
+  ctx.lineTo(PRINT_WIDTH - 20, y);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = '#000000';
+  ctx.textAlign = 'center';
+
+  if (hasQr) {
+    ctx.font = 'bold 15px sans-serif';
+    ctx.fillText('QR 코드를 스캔하고 사진을 저장하세요!', PRINT_WIDTH / 2, y + 28);
+    ctx.font = '13px sans-serif';
+    ctx.fillText('iPhone: 공유 → 사진에 저장  |  Android: 갤러리 저장', PRINT_WIDTH / 2, y + 50);
+  }
+
+  ctx.font = 'bold 14px sans-serif';
+  ctx.fillText(storeDisplayName(), PRINT_WIDTH / 2, y + 74);
+
+  if (storeConfig.address) {
+    ctx.font = '12px sans-serif';
+    ctx.fillText(storeConfig.address, PRINT_WIDTH / 2, y + 92);
+  }
+  if (storeConfig.phone) {
+    ctx.font = '12px sans-serif';
+    ctx.fillText(storeConfig.phone, PRINT_WIDTH / 2, y + 108);
+  }
+};
+
 export interface ReceiptRenderInput {
   originalImage: string;
   transformedImage?: string;
@@ -121,7 +152,7 @@ export interface ReceiptRenderInput {
   qrUrl?: string;
 }
 
-/** 203 DPI 영수증 캔버스 렌더링 — 실패 시에도 빈 문자열 대신 fallback 반환 */
+/** 203 DPI 영수증 캔버스 렌더링 */
 export const renderReceiptPreview = async ({
   originalImage,
   transformedImage,
@@ -138,14 +169,24 @@ export const renderReceiptPreview = async ({
   ctx.fillStyle = '#FFFFFF';
   ctx.fillRect(0, 0, PRINT_WIDTH, PRINT_HEIGHT);
 
-  ctx.fillStyle = '#000000';
-  ctx.font = 'bold 36px sans-serif';
-  ctx.textAlign = 'left';
-  ctx.fillText('월드킹 당진서산점', 20, 50);
+  // 로고 이미지 (있으면) + 매장명
+  let headerY = 50;
+  try {
+    const logo = await loadImage('/icon-192.png');
+    ctx.drawImage(logo, 20, 12, 56, 56);
+    headerY = 52;
+  } catch {
+    /* 로고 없으면 텍스트만 */
+  }
 
-  ctx.font = 'bold 16px sans-serif';
+  ctx.fillStyle = '#000000';
+  ctx.font = 'bold 32px sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText(storeDisplayName(), 88, headerY);
+
+  ctx.font = 'bold 14px sans-serif';
   const dateStr = new Date().toLocaleDateString('ko-KR');
-  ctx.fillText(`${dateStr} | 미래의 내 모습 포토부스`, 20, 80);
+  ctx.fillText(`${dateStr} | ${storeConfig.receiptTagline}`, 20, 82);
 
   if (qrUrl) {
     try {
@@ -167,51 +208,58 @@ export const renderReceiptPreview = async ({
   ctx.setLineDash([]);
 
   const imgWidth = PRINT_WIDTH - 40;
-  const imgHeight = 300;
+  const imgHeight = 280;
   const futureSrc = transformedImage || originalImage;
 
   try {
     const originalImg = await loadImage(originalImage);
-    drawImageCover(ctx, originalImg, 20, 120, imgWidth, imgHeight, true, 'top');
+    drawImageCover(ctx, originalImg, 20, 115, imgWidth, imgHeight, true, 'top');
   } catch (e) {
     console.error('원본 이미지 렌더 실패:', e);
   }
 
   ctx.fillStyle = '#000000';
-  ctx.fillRect(20, 120, 70, 30);
+  ctx.fillRect(20, 115, 70, 28);
   ctx.fillStyle = '#FFFFFF';
-  ctx.font = 'bold 18px sans-serif';
+  ctx.font = 'bold 16px sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText('현재', 55, 142);
+  ctx.fillText('현재', 55, 135);
 
-  const img2Y = 120 + imgHeight + 20;
+  const img2Y = 115 + imgHeight + 16;
   try {
     const futureImg = await loadImage(futureSrc);
     drawImageCover(ctx, futureImg, 20, img2Y, imgWidth, imgHeight, true, 'top');
   } catch (e) {
-    console.error('변환 이미지 렌더 실패, 원본으로 대체:', e);
+    console.error('변환 이미지 렌더 실패:', e);
     try {
       const fallback = await loadImage(originalImage);
       drawImageCover(ctx, fallback, 20, img2Y, imgWidth, imgHeight, true, 'top');
-    } catch {
-      /* 원본도 실패 시 빈 칸 */
-    }
+    } catch { /* skip */ }
   }
 
+  ctx.fillStyle = '#000000';
+  ctx.fillRect(20, img2Y, 80, 28);
   ctx.fillStyle = '#FFFFFF';
-  ctx.fillRect(PRINT_WIDTH - 150, img2Y + imgHeight - 40, 130, 40);
+  ctx.font = 'bold 16px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('미래의 나', 60, img2Y + 19);
+
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(PRINT_WIDTH - 150, img2Y + imgHeight - 36, 130, 36);
   ctx.strokeStyle = '#000000';
   ctx.lineWidth = 3;
-  ctx.strokeRect(PRINT_WIDTH - 150, img2Y + imgHeight - 40, 130, 40);
+  ctx.strokeRect(PRINT_WIDTH - 150, img2Y + imgHeight - 36, 130, 36);
   ctx.fillStyle = '#000000';
-  ctx.font = 'bold 18px sans-serif';
+  ctx.font = 'bold 16px sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText(`${age} ${job}`, PRINT_WIDTH - 85, img2Y + imgHeight - 14);
+  ctx.fillText(`${age} ${job}`, PRINT_WIDTH - 85, img2Y + imgHeight - 12);
+
+  drawFooter(ctx, !!qrUrl);
 
   try {
     return canvas.toDataURL('image/png');
   } catch (e) {
-    console.error('캔버스 export 실패 (CORS):', e);
+    console.error('캔버스 export 실패:', e);
     return '';
   }
 };

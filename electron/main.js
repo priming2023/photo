@@ -1,4 +1,5 @@
 import { app, BrowserWindow, ipcMain, globalShortcut } from 'electron';
+import { autoUpdater } from 'electron-updater';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
@@ -138,6 +139,15 @@ app.whenReady().then(() => {
   // 프로덕션: Windows 시작 시 자동 실행
   if (!isDev && process.platform === 'win32') {
     app.setLoginItemSettings({ openAtLogin: true, path: process.execPath });
+  }
+
+  // GitHub Releases 자동 업데이트 (프로덕션만)
+  if (!isDev) {
+    autoUpdater.autoDownload = true;
+    autoUpdater.autoInstallOnAppQuit = true;
+    autoUpdater.checkForUpdatesAndNotify().catch((err) => {
+      console.warn('[Electron] 업데이트 확인 실패:', err.message);
+    });
   }
 
   app.on('activate', () => {

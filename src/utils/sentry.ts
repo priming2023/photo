@@ -1,0 +1,17 @@
+import * as Sentry from '@sentry/react';
+
+const dsn = import.meta.env.VITE_SENTRY_DSN as string | undefined;
+
+export const initSentry = () => {
+  if (!dsn) return;
+
+  Sentry.init({
+    dsn,
+    environment: import.meta.env.MODE,
+    tracesSampleRate: 0.1,
+    replaysSessionSampleRate: 0,
+    replaysOnErrorSampleRate: 0,
+  });
+};
+
+export { Sentry };

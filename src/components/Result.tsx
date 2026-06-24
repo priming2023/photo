@@ -9,6 +9,7 @@ interface ResultProps {
   transformedImage?: string;
   job: string;
   age: string;
+  gender: string;
   onRetake: () => void;
   onPrintComplete: () => void;
 }
@@ -18,6 +19,7 @@ const Result: React.FC<ResultProps> = ({
   transformedImage,
   job,
   age,
+  gender,
   onRetake,
   onPrintComplete,
 }) => {
@@ -50,7 +52,7 @@ const Result: React.FC<ResultProps> = ({
 
     render();
     return () => { cancelled = true; };
-  }, [originalImage, transformedImage, job, age]);
+  }, [originalImage, transformedImage, job, age, gender]);
 
   useEffect(() => {
     let cancelled = false;
@@ -74,6 +76,7 @@ const Result: React.FC<ResultProps> = ({
           originalStorageUrl || transformedStorageUrl,
           job,
           age,
+          gender,
         );
         if (!cancelled && sessionId) {
           viewUrl = buildViewUrl(sessionId);
@@ -99,7 +102,7 @@ const Result: React.FC<ResultProps> = ({
 
     uploadAndRefreshQr();
     return () => { cancelled = true; };
-  }, [originalImage, transformedImage, job, age]);
+  }, [originalImage, transformedImage, job, age, gender]);
 
   const handlePrint = async () => {
     if (!printPreviewUrl || printing) return;

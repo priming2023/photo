@@ -93,8 +93,8 @@ const analyzeSubjectAge = (img: HTMLImageElement): SubjectAgeCategory => {
   // 세 영역 평균 (이마에 약간 가중치)
   const avgVariance = (leftCheek + rightCheek + forehead * 1.2) / 3.2;
 
-  // 임계값 8: JPEG 노이즈(~3) 포함해도 어린이(~5-7)와 성인(~10-18) 구분 가능
-  const isChild = avgVariance < 8;
+  // 임계값 9: 어린이 감지 민감도 상향 (포토부스 주 이용층 = 어린이)
+  const isChild = avgVariance < 9;
 
   console.log(
     `[SubjectAge] 뺨L=${leftCheek.toFixed(1)} 뺨R=${rightCheek.toFixed(1)} ` +
@@ -122,8 +122,8 @@ export const detectSubjectAge = async (imageSrc: string): Promise<SubjectAgeCate
  */
 export const getChildAgeWeightAdjust = (targetAgeStr: string): number => {
   const age = parseInt(targetAgeStr.replace(/[^0-9]/g, ''), 10) || 35;
-  if (age <= 25) return -0.05;  // 25살: 어린이→성인 변환이 가장 크게 필요
-  if (age <= 35) return -0.03;  // 35살: 중간
+  if (age <= 25) return -0.06;  // 25살: 어린이→성인 변환이 가장 크게 필요
+  if (age <= 35) return -0.04;  // 35살: 중간
   if (age <= 45) return -0.01;  // 45살 이상: 나이 묘사가 자연스럽게 처리
   return 0;
 };

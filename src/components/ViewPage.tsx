@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { getPhotoSession, PhotoSession } from '../utils/photoSession';
+import { storeDisplayName } from '../config/store';
 import {
   createComparisonImage,
   saveImageToGallery,
@@ -93,7 +94,7 @@ const ViewPage: React.FC<ViewPageProps> = ({ sessionId }) => {
               ? '보관 기간(14일)이 지나 이미지가 삭제됐습니다.'
               : 'QR 코드가 올바른지 다시 확인해 주세요.'}
           </p>
-          <p className="mt-6 text-sm text-gray-400">월드킹 당진서산점</p>
+          <p className="mt-6 text-sm text-gray-400">{storeDisplayName()}</p>
         </div>
       </div>
     );
@@ -103,7 +104,7 @@ const ViewPage: React.FC<ViewPageProps> = ({ sessionId }) => {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-950 pb-10">
       <div className="px-6 pt-8 pb-4 text-center">
         <p className="text-blue-300/70 text-sm font-medium tracking-widest uppercase">
-          월드킹 당진서산점
+          {storeDisplayName()}
         </p>
         <h1 className="text-white text-2xl font-black mt-1">미래의 내 모습</h1>
       </div>

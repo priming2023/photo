@@ -1,4 +1,4 @@
-/** URL 또는 data URL 이미지를 HTMLImageElement로 로드 */
+import { storeDisplayName } from '../config/store';
 const loadImage = (src: string): Promise<HTMLImageElement> =>
   new Promise((resolve, reject) => {
     const img = new Image();
@@ -38,7 +38,7 @@ export const createComparisonImage = async (
   ctx.fillStyle = '#94a3b8';
   ctx.font = 'bold 22px sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText('월드킹 당진서산점 · 미래의 내 모습', W / 2, pad + 20);
+  ctx.fillText(`${storeDisplayName()} · 미래의 내 모습`, W / 2, pad + 20);
 
   const drawPhoto = (
     img: HTMLImageElement,

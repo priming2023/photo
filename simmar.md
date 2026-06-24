@@ -243,19 +243,16 @@ VITE_PUBLIC_APP_URL=https://phto-orcin.vercel.app
 
 ### 어린이 감지 및 성장 변환
 
-- `subjectAgeDetection.ts` — 피부 매끄러움(인접 픽셀 분산) 분석으로 어린이/성인 구분
-- 임계값 8: JPEG 노이즈(+3) 포함, 5~12세 감지 (보수적 — 오탐 최소화)
-- 어린이 감지 시:
-  - id_weight 소폭 하향 (25살: -0.05, 35살: -0.03, 45살+: -0.01) — 성장 변환 허용
-  - 성장 변환 프롬프트 추가: "Transform this child into a fully grown Korean adult"
-  - start_step 변경 없음 — 닮음 붕괴 방지
-- 안경 + 피사체 연령 감지 **병렬 실행** — 속도 유지
+- `subjectAgeDetection.ts` — 피부 매끄러움 분석
+- 임계값 **9** (2026-06-24 상향): 어린이 감지 민감도 ↑
+- id_weight 보정: 25살 **-0.06**, 35살 **-0.04**
+- 성장 변환 프롬프트: "Transform child into fully grown adult"
 
-| 조건 | id_weight 변화 | 프롬프트 |
-|------|----------------|---------|
-| 성인 + 25살 | 0.94/0.95 (기존) | 기존 나이 묘사 |
-| 어린이 + 25살 | 0.89/0.90 (-0.05) | 성장 변환 프롬프트 추가 |
-| 어린이 + 65살 | 변화 없음 | 기존 노화 묘사로 충분 |
+### 2026-06-24 노화 미세조정
+
+- 여성 55/65: `FEMALE_AGE_BOOST` — NOT 30/40/45 명시 강화
+- 남성 65: `looks exactly 65 NOT 45 NOT 50` + 네거티브 too young 강화
+- 공통 55/65 `AGE_DESCRIPTORS`에 mandatory aging signs 추가
 
 ---
 

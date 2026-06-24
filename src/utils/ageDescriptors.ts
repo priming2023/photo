@@ -33,28 +33,30 @@ export const AGE_DESCRIPTORS: Record<number, string> = {
     'distinct crow\'s feet wrinkles, visible nasolabial folds and smile lines',
     'forehead lines, under-eye bags, salt-and-pepper hair with prominent gray at temples',
     'mild age spots, mature skin texture, dignified older adult',
+    'mandatory visible aging signs, NOT youthful appearance',
   ].join(', '),
 
   65: [
-    'looks 65 years old, clearly a senior NOT middle-aged',
+    'looks 65 years old, clearly a senior NOT middle-aged NOT in forties',
     'pronounced wrinkles around eyes mouth and forehead',
     'deep nasolabial folds, marionette lines, under-eye wrinkles',
     'mostly gray or silver hair, age spots on cheeks, softer jawline',
     'natural elderly Korean complexion, wise dignified senior',
+    'unmistakably elderly face, NOT 40s or 50s',
   ].join(', '),
 };
 
 // ─── 성별별 추가 노화 강조 (프롬프트로 나이 표현 — id_weight는 닮음 유지) ─────
 const FEMALE_AGE_BOOST: Record<number, string> = {
   45: 'woman in her mid-forties with mature skin, no youthful glow',
-  55: 'Korean woman clearly in her mid-fifties, half-gray salt-and-pepper hair, visible aging on face, looks exactly 55 NOT 35',
-  65: 'Korean woman clearly in her mid-sixties, predominantly silver-gray hair, deep facial wrinkles, age spots, unmistakably elderly, looks exactly 65 NOT 45',
+  55: 'Korean woman clearly in her mid-fifties, half-gray salt-and-pepper hair, deep crow\'s feet and nasolabial folds, looks exactly 55 NOT 30 NOT 40, no youthful skin',
+  65: 'Korean woman clearly in her mid-sixties, predominantly silver-gray hair, deep facial wrinkles and age spots, sagging skin, unmistakably elderly, looks exactly 65 NOT 45 NOT 50',
 };
 
 const MALE_AGE_BOOST: Record<number, string> = {
   45: 'man in his mid-forties, mature masculine features',
-  55: 'Korean man in his mid-fifties, gray temples and sideburns, visible crow\'s feet and forehead lines, looks exactly 55',
-  65: 'Korean man in his mid-sixties, mostly gray hair, pronounced wrinkles, weathered mature skin, looks exactly 65 NOT 45',
+  55: 'Korean man in his mid-fifties, gray temples and sideburns, visible crow\'s feet and forehead lines, looks exactly 55 NOT 40',
+  65: 'Korean man in his mid-sixties, mostly gray hair, pronounced wrinkles, weathered mature skin, looks exactly 65 NOT 45 NOT 50, dignified elder NOT middle-aged',
 };
 
 export interface PulidParams {
@@ -139,8 +141,8 @@ export const buildNegativePrompt = (
 ): string => {
   const age = parseAgeNumber(ageStr);
   const tooYoung = gender === '여자'
-    ? 'looks 20s or 30s, youthful glowing skin, no wrinkles, dark hair only, too young for age, beautiful young woman'
-    : 'looks 30s or 40s, too young for age, youthful smooth face';
+    ? 'looks 20s or 30s or 40s, youthful glowing skin, no wrinkles, dark hair only, too young for age, beautiful young woman, smooth flawless skin'
+    : 'looks 30s or 40s, too young for age, youthful smooth face, no gray hair, middle-aged appearance';
 
   let result: string;
 

@@ -1,4 +1,5 @@
 import React from 'react';
+import { storeDisplayName } from '../config/store';
 
 interface HomeProps {
   onStart: () => void;
@@ -17,7 +18,7 @@ const Home: React.FC<HomeProps> = ({ onStart }) => {
         </div>
 
         <h2 className="text-sm sm:text-lg lg:text-2xl font-bold text-gray-400 tracking-widest mb-2 lg:mb-4 mt-6 lg:mt-8">
-          월드킹 당진서산점 포토부스
+          {storeDisplayName()} 포토부스
         </h2>
 
         <h1 className="text-4xl sm:text-5xl lg:text-[5rem] font-black mb-8 lg:mb-16 text-gray-800 leading-tight tracking-tight">

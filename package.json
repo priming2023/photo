@@ -15,7 +15,9 @@
     "deploy": "bash tool/vercel_deploy.sh"
   },
   "dependencies": {
+    "@sentry/react": "^8.55.2",
     "@supabase/supabase-js": "^2.43.4",
+    "electron-updater": "^6.8.9",
     "qrcode": "^1.5.4",
     "qrcode.react": "^3.1.0",
     "react": "^18.3.1",
@@ -67,6 +69,11 @@
       "oneClick": true,
       "allowToChangeInstallationDirectory": false,
       "runAfterFinish": true
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "priming2023",
+      "repo": "photo"
     }
   }
 }
