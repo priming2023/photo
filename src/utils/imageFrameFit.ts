@@ -1,12 +1,11 @@
 /**
  * 이미지 → 박스 맞춤 — 영수증 캔버스 공통
- * contain 기반: 좌우·상하 잘림 없음, widthScale로 줌아웃
  */
 
-export interface ReceiptFitOptions {
+export interface CoverYBiasOptions {
   /** 박스 높이 대비 아래로 이동 */
   yBias?: number;
-  /** 1 = 박스에 맞춤, 낮을수록 줌아웃(몸이 더 보임) */
+  /** 1 = 꽉 참, 낮을수록 줌아웃(몸이 더 보임) */
   widthScale?: number;
 }
 
@@ -17,49 +16,44 @@ export interface FrameFitRect {
   drawH: number;
 }
 
-/** 영수증 — AI 미래 사진 */
-export const FUTURE_PHOTO_COVER: ReceiptFitOptions = { yBias: 0.12, widthScale: 0.82 };
+/** 영수증 — AI 미래 사진 (aafc26b 기준, 살짝만 줌아웃) */
+export const FUTURE_PHOTO_COVER: CoverYBiasOptions = { yBias: 0.12, widthScale: 0.86 };
 
 /** 영수증 — 웹캠 현재 사진 (미래보다 더 넓게) */
-export const CURRENT_PHOTO_COVER: ReceiptFitOptions = { yBias: 0.08, widthScale: 0.76 };
+export const CURRENT_PHOTO_COVER: CoverYBiasOptions = { yBias: 0.08, widthScale: 0.81 };
 
 /**
- * contain + widthScale + yBias
- * 이미지 전체가 박스 안에 들어가므로 좌우 잘림 없음
+ * cover + yBias + widthScale — aafc26b 검증 방식
+ * 가로를 채우고 widthScale로만 미세 줌아웃
  */
-export const computeReceiptFit = (
+export const computeCoverYBiasFit = (
   imgW: number,
   imgH: number,
   boxX: number,
   boxY: number,
   boxW: number,
   boxH: number,
-  { yBias = 0.07, widthScale = 1 }: ReceiptFitOptions = {},
+  { yBias = 0.07, widthScale = 1 }: CoverYBiasOptions = {},
 ): FrameFitRect => {
   const imgAspect = imgW / imgH;
   const boxAspect = boxW / boxH;
+  const scale = widthScale;
   let drawW: number;
   let drawH: number;
+  let drawX: number;
+  let drawY: number;
 
   if (imgAspect > boxAspect) {
-    drawW = boxW;
-    drawH = imgH * (boxW / imgW);
+    drawH = boxH * scale;
+    drawW = imgW * (drawH / imgH);
+    drawX = boxX + (boxW - drawW) / 2;
+    drawY = boxY + (boxH - drawH) / 2 + boxH * yBias * 0.5;
   } else {
-    drawH = boxH;
-    drawW = imgW * (boxH / imgH);
+    drawW = boxW * scale;
+    drawH = imgH * (drawW / imgW);
+    drawX = boxX + (boxW - drawW) / 2;
+    drawY = boxY + (boxH - drawH) / 2 + boxH * yBias;
   }
 
-  const scale = Math.min(widthScale, 1);
-  drawW *= scale;
-  drawH *= scale;
-
-  return {
-    drawX: boxX + (boxW - drawW) / 2,
-    drawY: boxY + (boxH - drawH) / 2 + boxH * yBias,
-    drawW,
-    drawH,
-  };
+  return { drawX, drawY, drawW, drawH };
 };
-
-/** @deprecated computeReceiptFit 사용 */
-export const computeCoverYBiasFit = computeReceiptFit;
