@@ -103,7 +103,7 @@ const Result: React.FC<ResultProps> = ({
         <div className="flex flex-col sm:flex-row gap-4 lg:gap-8 mb-8 lg:mb-12 w-full justify-center items-center h-auto lg:h-[450px]">
           <div className="relative w-full max-w-[280px] sm:w-[240px] lg:w-[320px] aspect-[3/4] lg:aspect-auto lg:h-full bg-gray-50 border border-gray-200 rounded-2xl lg:rounded-3xl overflow-hidden shadow-sm">
             <div className="absolute top-3 left-3 lg:top-4 lg:left-4 bg-white/90 px-3 py-1 lg:px-4 rounded-full text-gray-700 font-bold z-10 text-xs lg:text-sm shadow-sm backdrop-blur-sm">현재의 나</div>
-            <img src={originalImage} alt="원본" className="w-full h-full object-contain transform -scale-x-100 bg-gray-50" />
+            <img src={originalImage} alt="원본" className="w-full h-full object-cover transform -scale-x-100" />
           </div>
 
           <div className="relative w-full max-w-[280px] sm:w-[240px] lg:w-[320px] aspect-[3/4] lg:aspect-auto lg:h-full bg-gray-50 border-4 border-blue-200 rounded-2xl lg:rounded-3xl overflow-hidden shadow-md">
@@ -113,7 +113,7 @@ const Result: React.FC<ResultProps> = ({
             <img
               src={transformedImage || originalImage}
               alt="미래"
-              className={`w-full h-full object-contain transform -scale-x-100 bg-gray-50 ${!transformedImage ? 'sepia-[.3] hue-rotate-[180deg] saturate-125' : ''}`}
+              className={`w-full h-full object-cover transform -scale-x-100 ${!transformedImage ? 'sepia-[.3] hue-rotate-[180deg] saturate-125' : ''}`}
             />
           </div>
         </div>

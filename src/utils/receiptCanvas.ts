@@ -2,7 +2,8 @@ import QRCode from 'qrcode';
 import { storeDisplayName } from '../config/store';
 import {
   computeContainFit,
-  CURRENT_PHOTO_FIT,
+  computeCoverFit,
+  CURRENT_PHOTO_COVER_ALIGN,
   FUTURE_PHOTO_FIT,
 } from './imageFrameFit';
 import { getReceiptQrFallbackUrl } from './receiptQr';
@@ -57,8 +58,47 @@ const loadImage = async (src: string): Promise<HTMLImageElement> => {
   });
 };
 
-/** contain — 직업·비율과 무관하게 전체가 박스 안에 들어감 (잘림 없음) */
-const drawImageInBox = (
+const drawClippedImage = (
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement,
+  boxX: number,
+  boxY: number,
+  boxW: number,
+  boxH: number,
+  mirror: boolean,
+  rect: { drawX: number; drawY: number; drawW: number; drawH: number },
+  grayscale = true,
+) => {
+  ctx.save();
+  if (grayscale) {
+    ctx.filter = 'grayscale(100%) contrast(150%) brightness(120%)';
+  }
+  ctx.beginPath();
+  ctx.rect(boxX, boxY, boxW, boxH);
+  ctx.clip();
+
+  if (mirror) {
+    ctx.translate(boxX + boxW / 2, boxY + boxH / 2);
+    ctx.scale(-1, 1);
+    ctx.drawImage(
+      img,
+      rect.drawX - boxX - boxW / 2,
+      rect.drawY - boxY - boxH / 2,
+      rect.drawW,
+      rect.drawH,
+    );
+  } else {
+    ctx.drawImage(img, rect.drawX, rect.drawY, rect.drawW, rect.drawH);
+  }
+
+  ctx.restore();
+  ctx.strokeStyle = '#000000';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(boxX, boxY, boxW, boxH);
+};
+
+/** 현재 사진 — cover(top), 위·아래 살짝 잘림 */
+const drawCurrentPhoto = (
   ctx: CanvasRenderingContext2D,
   img: HTMLImageElement,
   x: number,
@@ -66,39 +106,39 @@ const drawImageInBox = (
   w: number,
   h: number,
   mirror: boolean,
-  fit = FUTURE_PHOTO_FIT,
-  grayscale = true,
 ) => {
-  const { drawX, drawY, drawW, drawH } = computeContainFit(
+  const rect = computeCoverFit(
     img.width,
     img.height,
     x,
     y,
     w,
     h,
-    fit,
+    CURRENT_PHOTO_COVER_ALIGN,
   );
+  drawClippedImage(ctx, img, x, y, w, h, mirror, rect);
+};
 
-  ctx.save();
-  if (grayscale) {
-    ctx.filter = 'grayscale(100%) contrast(150%) brightness(120%)';
-  }
-  ctx.beginPath();
-  ctx.rect(x, y, w, h);
-  ctx.clip();
-
-  if (mirror) {
-    ctx.translate(x + w / 2, y + h / 2);
-    ctx.scale(-1, 1);
-    ctx.drawImage(img, drawX - x - w / 2, drawY - y - h / 2, drawW, drawH);
-  } else {
-    ctx.drawImage(img, drawX, drawY, drawW, drawH);
-  }
-
-  ctx.restore();
-  ctx.strokeStyle = '#000000';
-  ctx.lineWidth = 4;
-  ctx.strokeRect(x, y, w, h);
+/** 미래 사진 — feab2e3 contain + 줌(1.18) + yBias, 좌우 잘림 방지 */
+const drawFuturePhoto = (
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  mirror: boolean,
+) => {
+  const rect = computeContainFit(
+    img.width,
+    img.height,
+    x,
+    y,
+    w,
+    h,
+    FUTURE_PHOTO_FIT,
+  );
+  drawClippedImage(ctx, img, x, y, w, h, mirror, rect);
 };
 
 const drawQrCode = async (
@@ -178,7 +218,7 @@ export const renderReceiptPreview = async ({
 
   try {
     const originalImg = await loadImage(originalImage);
-    drawImageInBox(ctx, originalImg, 20, 120, imgWidth, imgHeight, true, CURRENT_PHOTO_FIT);
+    drawCurrentPhoto(ctx, originalImg, 20, 120, imgWidth, imgHeight, true);
   } catch (e) {
     console.error('원본 이미지 렌더 실패:', e);
   }
@@ -193,12 +233,12 @@ export const renderReceiptPreview = async ({
   const img2Y = 120 + imgHeight + 20;
   try {
     const futureImg = await loadImage(futureSrc);
-    drawImageInBox(ctx, futureImg, 20, img2Y, imgWidth, imgHeight, true, FUTURE_PHOTO_FIT);
+    drawFuturePhoto(ctx, futureImg, 20, img2Y, imgWidth, imgHeight, true);
   } catch (e) {
     console.error('변환 이미지 렌더 실패, 원본으로 대체:', e);
     try {
       const fallback = await loadImage(originalImage);
-      drawImageInBox(ctx, fallback, 20, img2Y, imgWidth, imgHeight, true, FUTURE_PHOTO_FIT);
+      drawFuturePhoto(ctx, fallback, 20, img2Y, imgWidth, imgHeight, true);
     } catch { /* skip */ }
   }
 
