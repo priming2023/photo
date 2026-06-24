@@ -117,7 +117,7 @@ const registerAdminShortcuts = () => {
   });
 };
 
-/** 영수증 이미지(data URL)만 숨김 창에서 인쇄 */
+/** 영수증 이미지(data URL)만 숨김 창에서 80mm 인쇄 */
 const printReceiptImage = (imageDataUrl) =>
   new Promise((resolve) => {
     const printWin = new BrowserWindow({
@@ -125,45 +125,53 @@ const printReceiptImage = (imageDataUrl) =>
       webPreferences: { contextIsolation: true, nodeIntegration: false },
     });
 
-    const html = `<!DOCTYPE html>
-<html><head><meta charset="utf-8"><style>
-  @page { margin: 0; }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { width: 80mm; }
-  img { width: 80mm; height: auto; display: block; }
-</style></head>
-<body><img src="${imageDataUrl}" /></body></html>`;
-
-    printWin.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`);
-
-    printWin.webContents.on('did-finish-load', () => {
-      const options = {
-        silent: true,
-        printBackground: true,
-        color: false,
-        copies: 1,
-        margins: { marginType: 'none' },
-      };
-
-      if (config.printerName) {
-        options.deviceName = config.printerName;
+    const finish = (success, reason = '') => {
+      if (!printWin.isDestroyed()) printWin.close();
+      if (success) {
+        console.log('[Electron] 영수증 인쇄 완료', config.printerName || '(기본 프린터)');
+      } else {
+        console.error('[Electron] 영수증 인쇄 실패:', reason);
       }
+      resolve({ success, reason });
+    };
 
-      printWin.webContents.print(options, (success, failureReason) => {
-        printWin.close();
-        if (success) {
-          console.log('[Electron] 영수증 인쇄 완료', config.printerName || '(기본 프린터)');
-        } else {
-          console.error('[Electron] 영수증 인쇄 실패:', failureReason);
-        }
-        resolve({ success, reason: failureReason || '' });
-      });
+    printWin.webContents.on('did-finish-load', async () => {
+      try {
+        await printWin.webContents.executeJavaScript(`
+          document.open();
+          document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><style>' +
+            '@page{margin:0;size:80mm auto}*{margin:0;padding:0;box-sizing:border-box}' +
+            'html,body{width:80mm;background:#fff}img{width:80mm;height:auto;display:block}' +
+            '</style></head><body></body></html>');
+          document.close();
+          const img = document.createElement('img');
+          img.src = ${JSON.stringify(imageDataUrl)};
+          document.body.appendChild(img);
+          await new Promise((res, rej) => { img.onload = res; img.onerror = () => rej(new Error('img')); });
+        `);
+
+        const options = {
+          silent: true,
+          printBackground: true,
+          color: false,
+          copies: 1,
+          margins: { marginType: 'none' },
+        };
+        if (config.printerName) options.deviceName = config.printerName;
+
+        printWin.webContents.print(options, (success, failureReason) => {
+          finish(success, failureReason || '');
+        });
+      } catch (e) {
+        finish(false, e.message || '영수증 이미지 로드 실패');
+      }
     });
 
     printWin.webContents.on('did-fail-load', () => {
-      printWin.close();
-      resolve({ success: false, reason: '영수증 이미지 로드 실패' });
+      finish(false, '영수증 인쇄 페이지 로드 실패');
     });
+
+    printWin.loadURL('about:blank');
   });
 
 app.whenReady().then(() => {

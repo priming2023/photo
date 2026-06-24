@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { renderReceiptPreview } from '../utils/receiptCanvas';
 import { uploadImageToSupabase } from '../utils/supabase';
 import { savePhotoSession, buildViewUrl } from '../utils/photoSession';
-import { isElectron, printReceipt } from '../utils/electronBridge';
+import { printReceiptImage } from '../utils/receiptPrint';
 
 interface ResultProps {
   originalImage: string;
@@ -109,16 +109,11 @@ const Result: React.FC<ResultProps> = ({
     setPrinting(true);
 
     try {
-      if (isElectron()) {
-        const result = await printReceipt(printPreviewUrl);
-        if (result.success) {
-          onPrintComplete();
-        } else {
-          alert(`인쇄에 실패했어요.\n${result.reason || '프린터 연결을 확인해 주세요.'}`);
-        }
-      } else {
-        window.print();
+      const result = await printReceiptImage(printPreviewUrl);
+      if (result.success) {
         onPrintComplete();
+      } else {
+        alert(`인쇄에 실패했어요.\n${result.reason || '프린터 연결을 확인해 주세요.'}`);
       }
     } catch (e) {
       console.error('인쇄 오류:', e);
