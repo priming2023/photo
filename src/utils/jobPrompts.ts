@@ -25,7 +25,7 @@ export const buildPulidPrompt = (
   job: string,
   ageStr: string,
   gender: string,
-  eyewear: EyewearState = 'not_wearing',
+  eyewear: EyewearState = 'uncertain',
   subjectAge: SubjectAgeCategory = 'adult',
 ): string => {
   const age         = parseAgeNumber(ageStr);
@@ -39,7 +39,7 @@ export const buildPulidPrompt = (
   return [
     `Same person as reference photo, preserve identical face shape eyes nose lips jawline.`,
     `single person only, one face only, solo portrait, centered face, no duplicate faces, no split image.`,
-    `${eyewearDesc}.`,
+    eyewearDesc ? `${eyewearDesc}.` : '',
     childGrowth ? `${childGrowth}.` : '',
     `${age}-year-old Korean ${genderEng}. ${ageDesc}. ${genderStyle}.`,
     `${jobDetail}.`,

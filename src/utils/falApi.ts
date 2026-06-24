@@ -1,7 +1,7 @@
 import { buildPulidPrompt, buildNegativePrompt, getPulidParams } from './jobPrompts';
 import { uploadToFalCdn } from './falCdnUpload';
 import { cropToPortrait } from './imagePreprocess';
-import { detectEyewear, getEyewearNegative } from './eyewearDetection';
+import { detectEyewear, getEyewearNegative, getEyewearPulidAdjust } from './eyewearDetection';
 import { detectSubjectAge, getChildAgeWeightAdjust } from './subjectAgeDetection';
 
 const PULID_ENDPOINT = 'https://fal.run/fal-ai/flux-pulid';
@@ -82,7 +82,7 @@ export const generateTransformedImage = async (
     detectSubjectAge(processedImage),
   ]);
   console.log(
-    `[Fal] 안경: ${eyewear === 'wearing' ? '✅착용' : '❌미착용'} | ` +
+    `[Fal] 안경: ${eyewear === 'wearing' ? '✅착용' : eyewear === 'not_wearing' ? '❌미착용' : '❓불확실(참조따름)'} | ` +
     `피사체: ${subjectAge === 'child' ? '👶어린이' : '🧑성인'}`,
   );
 
@@ -92,6 +92,18 @@ export const generateTransformedImage = async (
 
   // 나이·성별·피사체연령 파라미터 조합
   let { id_weight, start_step, guidance_scale } = getPulidParams(ageStr, gender);
+
+  // 안경 착용·불확실: 참조 이미지 충실도 높여 안경 drift 방지
+  const eyewearAdjust = getEyewearPulidAdjust(eyewear);
+  if (eyewearAdjust.idWeightBoost > 0) {
+    id_weight = Math.min(id_weight + eyewearAdjust.idWeightBoost, 0.95);
+  }
+  if (eyewearAdjust.startStepReduce > 0) {
+    start_step = Math.max(start_step - eyewearAdjust.startStepReduce, 2);
+  }
+  if (eyewear !== 'not_wearing') {
+    console.log(`[Fal] 안경 보존 보정: id=${id_weight}, step=${start_step}`);
+  }
 
   // 어린이 감지 시 id_weight 소폭 하향 → 성장 변환 허용 (start_step 고정 — 닮음 붕괴 방지)
   if (subjectAge === 'child') {

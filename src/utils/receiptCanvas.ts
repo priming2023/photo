@@ -208,24 +208,24 @@ export const renderReceiptPreview = async ({
   ctx.setLineDash([]);
 
   const imgWidth = PRINT_WIDTH - 40;
-  const imgHeight = 280;
+  const imgHeight = 300;
   const futureSrc = transformedImage || originalImage;
 
   try {
     const originalImg = await loadImage(originalImage);
-    drawImageCover(ctx, originalImg, 20, 115, imgWidth, imgHeight, true, 'top');
+    drawImageCover(ctx, originalImg, 20, 120, imgWidth, imgHeight, true, 'top');
   } catch (e) {
     console.error('원본 이미지 렌더 실패:', e);
   }
 
   ctx.fillStyle = '#000000';
-  ctx.fillRect(20, 115, 70, 28);
+  ctx.fillRect(20, 120, 70, 30);
   ctx.fillStyle = '#FFFFFF';
-  ctx.font = 'bold 16px sans-serif';
+  ctx.font = 'bold 18px sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText('현재', 55, 135);
+  ctx.fillText('현재', 55, 142);
 
-  const img2Y = 115 + imgHeight + 16;
+  const img2Y = 120 + imgHeight + 20;
   try {
     const futureImg = await loadImage(futureSrc);
     drawImageCover(ctx, futureImg, 20, img2Y, imgWidth, imgHeight, true, 'top');
@@ -237,22 +237,15 @@ export const renderReceiptPreview = async ({
     } catch { /* skip */ }
   }
 
-  ctx.fillStyle = '#000000';
-  ctx.fillRect(20, img2Y, 80, 28);
   ctx.fillStyle = '#FFFFFF';
-  ctx.font = 'bold 16px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('미래의 나', 60, img2Y + 19);
-
-  ctx.fillStyle = '#FFFFFF';
-  ctx.fillRect(PRINT_WIDTH - 150, img2Y + imgHeight - 36, 130, 36);
+  ctx.fillRect(PRINT_WIDTH - 150, img2Y + imgHeight - 40, 130, 40);
   ctx.strokeStyle = '#000000';
   ctx.lineWidth = 3;
-  ctx.strokeRect(PRINT_WIDTH - 150, img2Y + imgHeight - 36, 130, 36);
+  ctx.strokeRect(PRINT_WIDTH - 150, img2Y + imgHeight - 40, 130, 40);
   ctx.fillStyle = '#000000';
-  ctx.font = 'bold 16px sans-serif';
+  ctx.font = 'bold 18px sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText(`${age} ${job}`, PRINT_WIDTH - 85, img2Y + imgHeight - 12);
+  ctx.fillText(`${age} ${job}`, PRINT_WIDTH - 85, img2Y + imgHeight - 14);
 
   drawFooter(ctx, !!qrUrl);
 
