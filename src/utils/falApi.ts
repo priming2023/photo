@@ -2,6 +2,7 @@ import { buildPulidPrompt, buildNegativePrompt, getPulidParams } from './jobProm
 import { uploadToFalCdn } from './falCdnUpload';
 import { cropToPortrait } from './imagePreprocess';
 import { detectEyewear, getEyewearNegative } from './eyewearDetection';
+import { detectSubjectAge, getChildAgeWeightAdjust } from './subjectAgeDetection';
 
 const PULID_ENDPOINT = 'https://fal.run/fal-ai/flux-pulid';
 const TIMEOUT_MS     = 120_000;
@@ -75,17 +76,30 @@ export const generateTransformedImage = async (
       : `data:image/jpeg;base64,${processedImage}`;
   }
 
-  // 3. 안경 착용 여부 감지 → 프롬프트 분기
-  const eyewear = await detectEyewear(processedImage);
-  console.log(`[Fal] 안경 감지: ${eyewear === 'wearing' ? '착용' : eyewear === 'not_wearing' ? '미착용' : '불확실(참조 따름)'}`);
+  // 3. 안경 착용 여부 + 촬영자 연령대 병렬 감지
+  const [eyewear, subjectAge] = await Promise.all([
+    detectEyewear(processedImage),
+    detectSubjectAge(processedImage),
+  ]);
+  console.log(
+    `[Fal] 안경: ${eyewear === 'wearing' ? '✅착용' : '❌미착용'} | ` +
+    `피사체: ${subjectAge === 'child' ? '👶어린이' : '🧑성인'}`,
+  );
 
   // 4. flux-pulid 변환
-  const prompt         = buildPulidPrompt(job, ageStr, gender, eyewear);
+  const prompt         = buildPulidPrompt(job, ageStr, gender, eyewear, subjectAge);
   const negativePrompt = buildNegativePrompt(ageStr, gender, getEyewearNegative(eyewear));
-  // 나이·성별별 파라미터 — 젊으면 얼굴 고정, 나이 많으면 노화 표현 허용
-  // 여성은 동안 경향이 강해 더 강하게 노화, 남성은 65세 살짝 젊게
-  const { id_weight, start_step, guidance_scale } = getPulidParams(ageStr, gender);
-  console.log('[Fal] 프롬프트 앞부분:', prompt.slice(0, 100));
+
+  // 나이·성별·피사체연령 파라미터 조합
+  let { id_weight, start_step, guidance_scale } = getPulidParams(ageStr, gender);
+
+  // 어린이 감지 시 id_weight 소폭 하향 → 성장 변환 허용 (start_step 고정 — 닮음 붕괴 방지)
+  if (subjectAge === 'child') {
+    const adjust = getChildAgeWeightAdjust(ageStr);
+    id_weight = Math.max(id_weight + adjust, 0.82);
+    console.log(`[Fal] 어린이 보정: id_weight ${(id_weight - adjust).toFixed(2)} → ${id_weight.toFixed(2)}`);
+  }
+  console.log('[Fal] 프롬프트 앞부분:', prompt.slice(0, 120));
   console.log(`[Fal] 파라미터 (${gender} ${ageStr}): id=${id_weight}, step=${start_step}, guidance=${guidance_scale}`);
 
   const controller = new AbortController();
