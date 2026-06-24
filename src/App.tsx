@@ -14,13 +14,13 @@ export type ScreenState = 'HOME' | 'SELECTION' | 'CAMERA' | 'PROCESSING' | 'RESU
 
 function App() {
   const [screen, setScreen] = useState<ScreenState>('HOME');
-  const [selections, setSelections] = useState({ job: '', age: '', gender: '', wearsGlasses: false });
+  const [selections, setSelections] = useState({ job: '', age: '', gender: '' });
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [transformedImage, setTransformedImage] = useState<string | null>(null);
 
   const handleReset = useCallback(() => {
     setScreen('HOME');
-    setSelections({ job: '', age: '', gender: '', wearsGlasses: false });
+    setSelections({ job: '', age: '', gender: '' });
     setCapturedImage(null);
     setTransformedImage(null);
   }, []);
@@ -55,8 +55,8 @@ function App() {
 
         {screen === 'SELECTION' && (
           <Selection
-            onComplete={(job, age, gender, wearsGlasses) => {
-              setSelections({ job, age, gender, wearsGlasses });
+            onComplete={(job, age, gender) => {
+              setSelections({ job, age, gender });
               setScreen('CAMERA');
             }}
           />
@@ -76,7 +76,6 @@ function App() {
             job={selections.job}
             age={selections.age}
             gender={selections.gender}
-            wearsGlasses={selections.wearsGlasses}
             originalImage={capturedImage}
             onFinish={(resultImage) => {
               setTransformedImage(resultImage || null);

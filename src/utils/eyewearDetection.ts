@@ -4,44 +4,71 @@ const MOONDREAM_ENDPOINT = 'https://fal.run/fal-ai/moondream2/visual-query';
 
 export type EyewearState = 'wearing' | 'not_wearing';
 
+const PRIMARY_PROMPT =
+  'Look at this person\'s eyes and nose bridge. ' +
+  'Are they wearing prescription eyeglasses or spectacles with visible frames on their face? ' +
+  '(Safety goggles on the forehead do NOT count.) Answer only yes or no.';
+
+const CONFIRM_PROMPT =
+  'Can you clearly see eyeglass or spectacle frames sitting on this person\'s eyes? ' +
+  'Answer only yes or no.';
+
+const parseYesNo = (output: string): EyewearState | null => {
+  const answer = output.toLowerCase().trim();
+  if (/\byes\b/.test(answer)) return 'wearing';
+  if (/\bno\b/.test(answer)) return 'not_wearing';
+  return null;
+};
+
+const queryVision = async (
+  imageUrl: string,
+  apiKey: string,
+  prompt: string,
+): Promise<EyewearState | null> => {
+  const res = await fetch(MOONDREAM_ENDPOINT, {
+    method: 'POST',
+    headers: {
+      Authorization: `Key ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ image_url: imageUrl, prompt }),
+  });
+
+  if (!res.ok) return null;
+
+  const data = await res.json() as { output?: string };
+  return parseYesNo(data.output || '');
+};
+
 /**
- * Fal Vision(moondream2)으로 안경 착용 여부 확인
- * — canvas 휴리스틱 오탐 대비, 사용자 선택이 없을 때만 사용
+ * 촬영 사진에서 안경 착용 여부 자동 감지
+ * — 1차 판정 후 "착용"일 때만 2차 확인 (오탐·직업 편향 방지)
+ * — 불확실·실패 시 미착용 (AI가 안경을 덧씌우는 쪽이 더 흔한 오류)
  */
-export const detectEyewearVision = async (
+export const detectEyewearAuto = async (
   imageSrc: string,
   apiKey: string,
-): Promise<EyewearState | null> => {
+): Promise<EyewearState> => {
   try {
     let imageUrl = imageSrc;
     if (imageSrc.startsWith('data:')) {
       imageUrl = await uploadToFalCdn(imageSrc, apiKey);
     }
 
-    const res = await fetch(MOONDREAM_ENDPOINT, {
-      method: 'POST',
-      headers: {
-        Authorization: `Key ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        image_url: imageUrl,
-        prompt: 'Is this person wearing eyeglasses or spectacles on their eyes? Answer only yes or no.',
-      }),
-    });
+    const primary = await queryVision(imageUrl, apiKey, PRIMARY_PROMPT);
+    console.log('[Eyewear Vision] 1차:', primary ?? 'unknown');
 
-    if (!res.ok) return null;
+    if (primary !== 'wearing') {
+      return 'not_wearing';
+    }
 
-    const data = await res.json() as { output?: string };
-    const answer = (data.output || '').toLowerCase().trim();
-    console.log('[Eyewear Vision]', answer);
+    const confirm = await queryVision(imageUrl, apiKey, CONFIRM_PROMPT);
+    console.log('[Eyewear Vision] 2차 확인:', confirm ?? 'unknown');
 
-    if (/\byes\b/.test(answer)) return 'wearing';
-    if (/\bno\b/.test(answer)) return 'not_wearing';
-    return null;
+    return confirm === 'wearing' ? 'wearing' : 'not_wearing';
   } catch (e) {
-    console.warn('[Eyewear Vision] 실패:', e);
-    return null;
+    console.warn('[Eyewear Vision] 실패 → 미착용 기본값:', e);
+    return 'not_wearing';
   }
 };
 
@@ -87,6 +114,5 @@ export const getEyewearPulidAdjust = (
   if (state === 'wearing') {
     return { idWeightDelta: 0.02, startStep: 2 };
   }
-  // 미착용: 참조 사진의 맨눈을 빠르게 고정해 AI가 안경을 덧씌우지 못하게
-  return { idWeightDelta: 0.03, startStep: 2 };
+  return { idWeightDelta: 0.04, startStep: 2 };
 };

@@ -51,7 +51,8 @@ const loadImage = async (src: string): Promise<HTMLImageElement> => {
   });
 };
 
-const drawImageFit = (
+/** contain + 살짝 줌인·아래로 배치 (landscape AI 이미지 좌우 여백 보정) */
+const drawImageFitZoom = (
   ctx: CanvasRenderingContext2D,
   img: HTMLImageElement,
   x: number,
@@ -59,6 +60,8 @@ const drawImageFit = (
   w: number,
   h: number,
   mirror: boolean,
+  zoom = 1.18,
+  yBias = 0.07,
 ) => {
   const imgAspect = img.width / img.height;
   const boxAspect = w / h;
@@ -73,8 +76,11 @@ const drawImageFit = (
     drawW = img.width * (h / img.height);
   }
 
+  drawW *= zoom;
+  drawH *= zoom;
+
   const drawX = x + (w - drawW) / 2;
-  const drawY = y + (h - drawH) / 2;
+  const drawY = y + (h - drawH) / 2 + h * yBias;
 
   ctx.save();
   ctx.filter = 'grayscale(100%) contrast(150%) brightness(120%)';
@@ -235,12 +241,12 @@ export const renderReceiptPreview = async ({
   const img2Y = 120 + imgHeight + 20;
   try {
     const futureImg = await loadImage(futureSrc);
-    drawImageFit(ctx, futureImg, 20, img2Y, imgWidth, imgHeight, true);
+    drawImageFitZoom(ctx, futureImg, 20, img2Y, imgWidth, imgHeight, true);
   } catch (e) {
     console.error('변환 이미지 렌더 실패, 원본으로 대체:', e);
     try {
       const fallback = await loadImage(originalImage);
-      drawImageFit(ctx, fallback, 20, img2Y, imgWidth, imgHeight, true);
+      drawImageFitZoom(ctx, fallback, 20, img2Y, imgWidth, imgHeight, true);
     } catch { /* skip */ }
   }
 

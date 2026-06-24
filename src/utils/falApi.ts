@@ -2,11 +2,11 @@ import { buildPulidPrompt, buildNegativePrompt, getPulidParams } from './jobProm
 import { uploadToFalCdn } from './falCdnUpload';
 import { cropToPortrait } from './imagePreprocess';
 import {
-  type EyewearState,
-  detectEyewearVision,
+  detectEyewearAuto,
   getEyewearNegative,
   getEyewearPulidAdjust,
 } from './eyewearDetection';
+import { JOB_NEGATIVES } from './jobDetails';
 import { detectSubjectAge, getChildAgeWeightAdjust } from './subjectAgeDetection';
 
 const PULID_ENDPOINT = 'https://fal.run/fal-ai/flux-pulid';
@@ -28,26 +28,11 @@ const parseFalError = (status: number, body: string): string => {
   }
 };
 
-const resolveEyewear = async (
-  userWearsGlasses: boolean,
-  processedImage: string,
-  apiKey: string,
-): Promise<EyewearState> => {
-  if (!userWearsGlasses) {
-    // 사용자가 "안 씀" 선택 → 무조건 미착용 (자동 감지 무시)
-    return 'not_wearing';
-  }
-  // 착용 선택 시 Vision으로 한 번 더 확인 (오탐 방지)
-  const vision = await detectEyewearVision(processedImage, apiKey);
-  return vision === 'not_wearing' ? 'not_wearing' : 'wearing';
-};
-
 export const generateTransformedImage = async (
   base64Image: string,
   job: string,
   ageStr: string,
   gender: string,
-  wearsGlasses = false,
 ): Promise<string> => {
   const apiKey = import.meta.env.VITE_FAL_KEY as string | undefined;
 
@@ -78,16 +63,21 @@ export const generateTransformedImage = async (
   }
 
   const [eyewear, subjectAge] = await Promise.all([
-    resolveEyewear(wearsGlasses, processedImage, apiKey),
+    detectEyewearAuto(processedImage, apiKey),
     detectSubjectAge(processedImage),
   ]);
   console.log(
-    `[Fal] 안경: ${eyewear === 'wearing' ? '✅착용' : '❌미착용'} (사용자: ${wearsGlasses ? '착용' : '안 씀'}) | ` +
+    `[Fal] 안경(자동): ${eyewear === 'wearing' ? '✅착용' : '❌미착용'} | ` +
     `피사체: ${subjectAge === 'child' ? '👶어린이' : '🧑성인'}`,
   );
 
   const prompt         = buildPulidPrompt(job, ageStr, gender, eyewear, subjectAge);
-  const negativePrompt = buildNegativePrompt(ageStr, gender, getEyewearNegative(eyewear));
+  const jobNegative    = JOB_NEGATIVES[job] ?? '';
+  const negativePrompt = buildNegativePrompt(
+    ageStr,
+    gender,
+    [getEyewearNegative(eyewear), jobNegative].filter(Boolean).join(', '),
+  );
 
   let { id_weight, start_step, guidance_scale } = getPulidParams(ageStr, gender);
 

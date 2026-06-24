@@ -108,11 +108,11 @@ export const JOB_PROMPTS: Record<string, string> = {
     'compassionate caring warm professional expression',
 
   // 판사 ────────────────────────────────────────────────────────────────────
-  // E방안: 판사봉 얼굴 레벨까지 올림 → 얼굴 바로 옆 핵심, 법복 깃 → 어깨 레벨
+  // 판사봉: 얼굴 옆이 아닌 가슴 높이·손 크기 고정 (AI가 망치·거대 봉으로 왜곡하기 쉬움)
   '판사':
     'wearing a formal black Korean judicial robe (법복) with white official collar clearly visible, ' +
-    'holding a wooden gavel raised prominently to face level in right hand — THE most important identifier, ' +
-    'seated behind elevated judicial bench, Korean national emblem visible in background behind shoulders, ' +
+    'holding a small realistic wooden court gavel at chest height in one hand — short handle about 15cm, round wooden head about 5cm diameter, normal hand-sized judge mallet NOT a hammer NOT a toy NOT oversized, ' +
+    'other hand resting naturally on the wooden judicial bench, seated behind elevated bench, Korean courtroom emblem softly blurred in background, ' +
     'formal solemn courtroom lighting, official authoritative atmosphere, ' +
     'highly authoritative wise composed commanding expression',
 
@@ -169,4 +169,10 @@ export const JOB_PROMPTS: Record<string, string> = {
     'warm amber desk lamp lighting creating a cozy soft glow on face, ' +
     'tall bookshelves with Korean and world literature books in background, ' +
     'deeply thoughtful wise creative expression',
+};
+
+/** 직업별 추가 네거티브 (소품 왜곡 방지) */
+export const JOB_NEGATIVES: Partial<Record<string, string>> = {
+  '판사':
+    'giant gavel, oversized hammer, war hammer, mallet merged with hand, deformed gavel, multiple gavels, melted wooden object, sledgehammer, toy hammer',
 };

@@ -5,7 +5,6 @@ interface ProcessingProps {
   job: string;
   age: string;
   gender: string;
-  wearsGlasses: boolean;
   originalImage: string;
   onFinish: (resultImage: string) => void;
   onRetry?: () => void;
@@ -15,7 +14,6 @@ const Processing: React.FC<ProcessingProps> = ({
   job,
   age,
   gender,
-  wearsGlasses,
   originalImage,
   onFinish,
   onRetry,
@@ -40,7 +38,7 @@ const Processing: React.FC<ProcessingProps> = ({
     }, 120);
 
     try {
-      const resultUrl = await generateTransformedImage(originalImage, job, age, gender, wearsGlasses);
+      const resultUrl = await generateTransformedImage(originalImage, job, age, gender);
 
       if (mounted.current) {
         setProgress(100);
@@ -70,7 +68,7 @@ const Processing: React.FC<ProcessingProps> = ({
       clearTimeout(timer4);
       clearInterval(interval);
     }
-  }, [age, job, gender, wearsGlasses, originalImage, onFinish]);
+  }, [age, job, gender, originalImage, onFinish]);
 
   useEffect(() => {
     const mounted = { current: true };
