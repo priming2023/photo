@@ -52,7 +52,7 @@ const loadImage = async (src: string): Promise<HTMLImageElement> => {
   });
 };
 
-/** cover — 좌우 빈공간 없이 채움 + 세로 위치(yBias 0.07) */
+/** cover — 좌우 빈공간 없이 채움 + 세로 위치 조정 (yBias↑ = 이미지 아래로 → 이마·윗머리 더 보임) */
 const drawImageCoverYBias = (
   ctx: CanvasRenderingContext2D,
   img: HTMLImageElement,
@@ -61,7 +61,8 @@ const drawImageCoverYBias = (
   w: number,
   h: number,
   mirror: boolean,
-  yBias = 0.07,
+  yBias = 0.16,
+  widthScale = 1,
 ) => {
   const imgAspect = img.width / img.height;
   const boxAspect = w / h;
@@ -76,9 +77,9 @@ const drawImageCoverYBias = (
     drawX = x - (drawW - w) / 2;
     drawY = y + h * yBias * 0.5;
   } else {
-    drawW = w;
-    drawH = img.height * (w / img.width);
-    drawX = x;
+    drawW = w * widthScale;
+    drawH = img.height * (drawW / img.width);
+    drawX = x + (w - drawW) / 2;
     drawY = y + (h - drawH) / 2 + h * yBias;
   }
 
@@ -248,12 +249,12 @@ export const renderReceiptPreview = async ({
   const img2Y = 120 + imgHeight + 20;
   try {
     const futureImg = await loadImage(futureSrc);
-    drawImageCoverYBias(ctx, futureImg, 20, img2Y, imgWidth, imgHeight, true);
+    drawImageCoverYBias(ctx, futureImg, 20, img2Y, imgWidth, imgHeight, true, 0.18, 0.96);
   } catch (e) {
     console.error('변환 이미지 렌더 실패, 원본으로 대체:', e);
     try {
       const fallback = await loadImage(originalImage);
-      drawImageCoverYBias(ctx, fallback, 20, img2Y, imgWidth, imgHeight, true);
+      drawImageCoverYBias(ctx, fallback, 20, img2Y, imgWidth, imgHeight, true, 0.18, 0.96);
     } catch { /* skip */ }
   }
 
