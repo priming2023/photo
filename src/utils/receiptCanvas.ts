@@ -1,9 +1,8 @@
 import QRCode from 'qrcode';
 import { storeDisplayName } from '../config/store';
 import {
-  computeCoverFit,
   computeCoverYBiasFit,
-  CURRENT_PHOTO_COVER_ALIGN,
+  CURRENT_PHOTO_COVER,
   FUTURE_PHOTO_COVER,
 } from './imageFrameFit';
 import { getReceiptQrFallbackUrl } from './receiptQr';
@@ -97,7 +96,7 @@ const drawClippedImage = (
   ctx.strokeRect(boxX, boxY, boxW, boxH);
 };
 
-/** 현재 사진 — cover(upper-body), 얼굴·상체 중심 */
+/** 현재 사진 — 미래보다 더 넓게 줌아웃 */
 const drawCurrentPhoto = (
   ctx: CanvasRenderingContext2D,
   img: HTMLImageElement,
@@ -107,14 +106,14 @@ const drawCurrentPhoto = (
   h: number,
   mirror: boolean,
 ) => {
-  const rect = computeCoverFit(
+  const rect = computeCoverYBiasFit(
     img.width,
     img.height,
     x,
     y,
     w,
     h,
-    CURRENT_PHOTO_COVER_ALIGN,
+    CURRENT_PHOTO_COVER,
   );
   drawClippedImage(ctx, img, x, y, w, h, mirror, rect);
 };
