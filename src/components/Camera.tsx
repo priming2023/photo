@@ -97,7 +97,7 @@ const Camera: React.FC<CameraProps> = ({ onCapture }) => {
           autoPlay
           playsInline
           muted
-          className="w-full h-full object-cover transform -scale-x-100 rounded-xl lg:rounded-3xl"
+          className="w-full h-full object-contain transform -scale-x-100 bg-gray-900"
         />
 
         {isCameraReady && countdown === null && !cameraError && (

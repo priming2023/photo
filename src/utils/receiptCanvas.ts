@@ -1,5 +1,10 @@
 import QRCode from 'qrcode';
 import { storeDisplayName } from '../config/store';
+import {
+  computeContainFit,
+  CURRENT_PHOTO_FIT,
+  FUTURE_PHOTO_FIT,
+} from './imageFrameFit';
 import { getReceiptQrFallbackUrl } from './receiptQr';
 
 /** 203 DPI — 62×100mm 영수증 (오늘 작업 전 검증된 레이아웃) */
@@ -52,8 +57,8 @@ const loadImage = async (src: string): Promise<HTMLImageElement> => {
   });
 };
 
-/** cover — 좌우 빈공간 없이 채움 + 세로 위치 조정 (yBias↑ = 이미지 아래로 → 이마·윗머리 더 보임) */
-const drawImageCoverYBias = (
+/** contain — 직업·비율과 무관하게 전체가 박스 안에 들어감 (잘림 없음) */
+const drawImageInBox = (
   ctx: CanvasRenderingContext2D,
   img: HTMLImageElement,
   x: number,
@@ -61,84 +66,23 @@ const drawImageCoverYBias = (
   w: number,
   h: number,
   mirror: boolean,
-  yBias = 0.16,
-  widthScale = 1,
+  fit = FUTURE_PHOTO_FIT,
+  grayscale = true,
 ) => {
-  const imgAspect = img.width / img.height;
-  const boxAspect = w / h;
-  let drawW: number;
-  let drawH: number;
-  let drawX: number;
-  let drawY: number;
-
-  if (imgAspect > boxAspect) {
-    drawH = h;
-    drawW = img.width * (h / img.height);
-    drawX = x - (drawW - w) / 2;
-    drawY = y + h * yBias * 0.5;
-  } else {
-    drawW = w * widthScale;
-    drawH = img.height * (drawW / img.width);
-    drawX = x + (w - drawW) / 2;
-    drawY = y + (h - drawH) / 2 + h * yBias;
-  }
+  const { drawX, drawY, drawW, drawH } = computeContainFit(
+    img.width,
+    img.height,
+    x,
+    y,
+    w,
+    h,
+    fit,
+  );
 
   ctx.save();
-  ctx.filter = 'grayscale(100%) contrast(150%) brightness(120%)';
-  ctx.beginPath();
-  ctx.rect(x, y, w, h);
-  ctx.clip();
-
-  if (mirror) {
-    ctx.translate(x + w / 2, y + h / 2);
-    ctx.scale(-1, 1);
-    ctx.drawImage(img, drawX - x - w / 2, drawY - y - h / 2, drawW, drawH);
-  } else {
-    ctx.drawImage(img, drawX, drawY, drawW, drawH);
+  if (grayscale) {
+    ctx.filter = 'grayscale(100%) contrast(150%) brightness(120%)';
   }
-
-  ctx.restore();
-  ctx.strokeStyle = '#000000';
-  ctx.lineWidth = 4;
-  ctx.strokeRect(x, y, w, h);
-};
-
-const drawImageCover = (
-  ctx: CanvasRenderingContext2D,
-  img: HTMLImageElement,
-  x: number,
-  y: number,
-  w: number,
-  h: number,
-  mirror: boolean,
-  verticalAlign: 'center' | 'top' | 'upper-body' = 'top',
-) => {
-  const imgAspect = img.width / img.height;
-  const boxAspect = w / h;
-  let drawW: number;
-  let drawH: number;
-  let drawX: number;
-  let drawY: number;
-
-  if (imgAspect > boxAspect) {
-    drawH = h;
-    drawW = img.width * (h / img.height);
-    drawX = x - (drawW - w) / 2;
-    drawY = y;
-  } else {
-    drawW = w;
-    drawH = img.height * (w / img.width);
-    drawX = x;
-    if (verticalAlign === 'upper-body') {
-      // 얼굴·가슴이 보이도록 상단보다 아래쪽 기준 (AI 클로즈업 보정)
-      drawY = y - (drawH - h) * 0.38;
-    } else {
-      drawY = verticalAlign === 'top' ? y : y - (drawH - h) / 2;
-    }
-  }
-
-  ctx.save();
-  ctx.filter = 'grayscale(100%) contrast(150%) brightness(120%)';
   ctx.beginPath();
   ctx.rect(x, y, w, h);
   ctx.clip();
@@ -234,7 +178,7 @@ export const renderReceiptPreview = async ({
 
   try {
     const originalImg = await loadImage(originalImage);
-    drawImageCover(ctx, originalImg, 20, 120, imgWidth, imgHeight, true, 'top');
+    drawImageInBox(ctx, originalImg, 20, 120, imgWidth, imgHeight, true, CURRENT_PHOTO_FIT);
   } catch (e) {
     console.error('원본 이미지 렌더 실패:', e);
   }
@@ -249,12 +193,12 @@ export const renderReceiptPreview = async ({
   const img2Y = 120 + imgHeight + 20;
   try {
     const futureImg = await loadImage(futureSrc);
-    drawImageCoverYBias(ctx, futureImg, 20, img2Y, imgWidth, imgHeight, true, 0.18, 0.96);
+    drawImageInBox(ctx, futureImg, 20, img2Y, imgWidth, imgHeight, true, FUTURE_PHOTO_FIT);
   } catch (e) {
     console.error('변환 이미지 렌더 실패, 원본으로 대체:', e);
     try {
       const fallback = await loadImage(originalImage);
-      drawImageCoverYBias(ctx, fallback, 20, img2Y, imgWidth, imgHeight, true, 0.18, 0.96);
+      drawImageInBox(ctx, fallback, 20, img2Y, imgWidth, imgHeight, true, FUTURE_PHOTO_FIT);
     } catch { /* skip */ }
   }
 
