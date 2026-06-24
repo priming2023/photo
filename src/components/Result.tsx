@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { renderReceiptPreview } from '../utils/receiptCanvas';
 import { uploadImageToSupabase } from '../utils/supabase';
 import { savePhotoSession, buildViewUrl } from '../utils/photoSession';
+import { isElectron, printReceipt } from '../utils/electronBridge';
 
 interface ResultProps {
   originalImage: string;
@@ -9,12 +10,20 @@ interface ResultProps {
   job: string;
   age: string;
   onRetake: () => void;
-  onPrint: () => void;
+  onPrintComplete: () => void;
 }
 
-const Result: React.FC<ResultProps> = ({ originalImage, transformedImage, job, age, onRetake, onPrint }) => {
+const Result: React.FC<ResultProps> = ({
+  originalImage,
+  transformedImage,
+  job,
+  age,
+  onRetake,
+  onPrintComplete,
+}) => {
   const [printPreviewUrl, setPrintPreviewUrl] = useState<string>('');
   const [qrStatus, setQrStatus] = useState<'loading' | 'ok' | 'fallback' | 'fail'>('loading');
+  const [printing, setPrinting] = useState(false);
 
   const uploadWithRetry = async (src: string, attempts = 3): Promise<string> => {
     for (let i = 0; i < attempts; i++) {
@@ -92,6 +101,30 @@ const Result: React.FC<ResultProps> = ({ originalImage, transformedImage, job, a
     return () => { cancelled = true; };
   }, [originalImage, transformedImage, job, age]);
 
+  const handlePrint = async () => {
+    if (!printPreviewUrl || printing) return;
+    setPrinting(true);
+
+    try {
+      if (isElectron()) {
+        const result = await printReceipt(printPreviewUrl);
+        if (result.success) {
+          onPrintComplete();
+        } else {
+          alert(`인쇄에 실패했어요.\n${result.reason || '프린터 연결을 확인해 주세요.'}`);
+        }
+      } else {
+        window.print();
+        onPrintComplete();
+      }
+    } catch (e) {
+      console.error('인쇄 오류:', e);
+      alert('인쇄 중 오류가 발생했어요.');
+    } finally {
+      setPrinting(false);
+    }
+  };
+
   return (
     <div className="flex flex-col lg:flex-row w-full min-h-screen lg:h-full p-4 sm:p-8 lg:p-12 items-stretch lg:items-center justify-start lg:justify-between gap-6 lg:gap-12 animate-fade-in pt-20 lg:pt-16 max-w-[1920px] mx-auto overflow-y-auto lg:overflow-hidden">
       <div className="flex flex-col items-center flex-1 bg-white p-6 sm:p-8 lg:p-12 rounded-3xl lg:rounded-[3rem] shadow-sm border border-gray-100 lg:h-full justify-center">
@@ -125,11 +158,11 @@ const Result: React.FC<ResultProps> = ({ originalImage, transformedImage, job, a
             🔄 다시 찍기
           </button>
           <button
-            onClick={onPrint}
-            disabled={!printPreviewUrl}
+            onClick={handlePrint}
+            disabled={!printPreviewUrl || printing}
             className="w-full sm:w-80 py-4 lg:py-6 bg-gray-800 text-white hover:bg-black rounded-2xl lg:rounded-[2rem] text-lg lg:text-2xl font-black transition-all shadow-md hover:scale-105 flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            🖨️ 영수증 인쇄하기
+            {printing ? '인쇄 중...' : '🖨️ 영수증 인쇄하기'}
           </button>
         </div>
       </div>
@@ -137,9 +170,7 @@ const Result: React.FC<ResultProps> = ({ originalImage, transformedImage, job, a
       <div className="flex flex-col items-center justify-center bg-gray-50 p-6 lg:p-8 rounded-3xl lg:rounded-[3rem] lg:h-full shadow-inner border border-gray-200 relative shrink-0">
         <h3 className="text-base lg:text-xl font-bold text-gray-400 mb-4 lg:mb-6">인쇄 미리보기 (203 DPI)</h3>
 
-        <div
-          className="relative shadow-[10px_10px_30px_rgba(0,0,0,0.15)] border border-gray-300 bg-white w-[260px] h-[420px] sm:w-[300px] sm:h-[485px] lg:w-[341px] lg:h-[550px]"
-        >
+        <div className="relative shadow-[10px_10px_30px_rgba(0,0,0,0.15)] border border-gray-300 bg-white w-[260px] h-[420px] sm:w-[300px] sm:h-[485px] lg:w-[341px] lg:h-[550px]">
           {printPreviewUrl ? (
             <img src={printPreviewUrl} alt="영수증 인쇄 미리보기" className="w-full h-full object-contain" />
           ) : (

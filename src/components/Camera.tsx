@@ -9,21 +9,35 @@ const Camera: React.FC<CameraProps> = ({ onCapture }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [isCameraReady, setIsCameraReady] = useState(false);
+  const [cameraError, setCameraError] = useState('');
 
   useEffect(() => {
     let stream: MediaStream | null = null;
 
     const startCamera = async () => {
       try {
+        if (!navigator.mediaDevices?.getUserMedia) {
+          setCameraError('이 브라우저는 카메라를 지원하지 않아요.');
+          return;
+        }
         stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: 'user', width: { ideal: 1920 }, height: { ideal: 1080 } },
         });
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
           setIsCameraReady(true);
+          setCameraError('');
         }
       } catch (err) {
         console.error('Camera access denied or error:', err);
+        const name = err instanceof DOMException ? err.name : '';
+        if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
+          setCameraError('카메라 접근이 거부되었어요.\n설정에서 카메라 권한을 허용해 주세요.');
+        } else if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
+          setCameraError('카메라를 찾을 수 없어요.\n웹캠이 연결되어 있는지 확인해 주세요.');
+        } else {
+          setCameraError('카메라를 시작할 수 없어요.\n잠시 후 다시 시도해 주세요.');
+        }
       }
     };
 
@@ -37,7 +51,7 @@ const Camera: React.FC<CameraProps> = ({ onCapture }) => {
   }, []);
 
   const takePhoto = () => {
-    if (countdown !== null) return;
+    if (countdown !== null || cameraError) return;
 
     setCountdown(3);
 
@@ -86,8 +100,7 @@ const Camera: React.FC<CameraProps> = ({ onCapture }) => {
           className="w-full h-full object-cover transform -scale-x-100 rounded-xl lg:rounded-3xl"
         />
 
-        {/* 상반신 윤곽선 가이드 */}
-        {isCameraReady && countdown === null && (
+        {isCameraReady && countdown === null && !cameraError && (
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none opacity-40">
             <svg
               width="600"
@@ -106,7 +119,17 @@ const Camera: React.FC<CameraProps> = ({ onCapture }) => {
 
         <canvas ref={canvasRef} className="hidden" />
 
-        {!isCameraReady && (
+        {cameraError && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-100 px-6 text-center gap-4">
+            <span className="text-5xl">📷</span>
+            <p className="text-base lg:text-xl text-red-500 font-bold whitespace-pre-line leading-relaxed">
+              {cameraError}
+            </p>
+            <p className="text-sm text-gray-400">관리자에게 문의해 주세요</p>
+          </div>
+        )}
+
+        {!isCameraReady && !cameraError && (
           <div className="absolute inset-0 flex items-center justify-center text-base lg:text-2xl text-gray-400 font-bold bg-gray-100 px-4 text-center">
             카메라를 준비하고 있어요...
           </div>
@@ -127,9 +150,9 @@ const Camera: React.FC<CameraProps> = ({ onCapture }) => {
 
       <button
         onClick={takePhoto}
-        disabled={!isCameraReady || countdown !== null}
+        disabled={!isCameraReady || countdown !== null || !!cameraError}
         className={`mt-6 lg:mt-12 px-10 py-5 lg:px-20 lg:py-8 rounded-full text-xl lg:text-4xl font-black transition-all duration-300 flex items-center gap-3 lg:gap-4 w-full sm:w-auto justify-center ${
-          isCameraReady && countdown === null
+          isCameraReady && countdown === null && !cameraError
             ? 'bg-gray-800 text-white hover:bg-black hover:scale-105 shadow-xl cursor-pointer'
             : 'bg-gray-200 text-gray-400 cursor-not-allowed'
         }`}

@@ -1,7 +1,7 @@
 {
   "name": "photo",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "main": "electron/main.js",
   "scripts": {
@@ -45,6 +45,7 @@
   "build": {
     "appId": "com.worldking.photo",
     "productName": "월드킹 포토부스",
+    "icon": "assets/icon.png",
     "files": [
       "dist/**/*",
       "electron/**/*",
@@ -55,10 +56,17 @@
     },
     "mac": {
       "target": "dmg",
-      "category": "public.app-category.photography"
+      "category": "public.app-category.photography",
+      "icon": "assets/icon.png"
     },
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "icon": "assets/icon.png"
+    },
+    "nsis": {
+      "oneClick": true,
+      "allowToChangeInstallationDirectory": false,
+      "runAfterFinish": true
     }
   }
 }
