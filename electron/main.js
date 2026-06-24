@@ -43,7 +43,8 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1920,
     height: 1200,
-    kiosk: true,
+    kiosk: !isDev,           // 개발 모드에서는 키오스크 OFF → 닫기 쉬움
+    fullscreen: !isDev,
     autoHideMenuBar: true,
     alwaysOnTop: !isDev,
     webPreferences: {
@@ -61,22 +62,30 @@ function createWindow() {
   }
 }
 
-/** 관리자 키오스크 탈출: Ctrl+Shift+Q */
+/** 관리자 단축키 */
 const registerAdminShortcuts = () => {
+  // 키오스크 해제
   globalShortcut.register('Control+Shift+Q', () => {
     if (!mainWindow) return;
     mainWindow.setKiosk(false);
     mainWindow.setFullScreen(false);
     mainWindow.setAlwaysOnTop(false);
-    console.log('[Electron] 키오스크 모드 해제 (Ctrl+Shift+Q)');
+    console.log('[Electron] 키오스크 해제 — Cmd+Q 또는 Ctrl+Shift+X 로 종료');
   });
 
+  // 키오스크 복귀
   globalShortcut.register('Control+Shift+K', () => {
     if (!mainWindow) return;
     mainWindow.setKiosk(true);
     mainWindow.setFullScreen(true);
     mainWindow.setAlwaysOnTop(true);
-    console.log('[Electron] 키오스크 모드 복귀 (Ctrl+Shift+K)');
+    console.log('[Electron] 키오스크 모드 복귀');
+  });
+
+  // 앱 완전 종료 (개발·현장 공통)
+  globalShortcut.register('Control+Shift+X', () => {
+    console.log('[Electron] 앱 종료 (Ctrl+Shift+X)');
+    app.quit();
   });
 };
 
@@ -160,7 +169,8 @@ app.on('will-quit', () => {
 });
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') app.quit();
+  // 개발 모드 또는 Windows/Linux: 창 닫으면 앱 종료
+  if (isDev || process.platform !== 'darwin') app.quit();
 });
 
 ipcMain.handle('print-receipt', async (_event, imageDataUrl) => {

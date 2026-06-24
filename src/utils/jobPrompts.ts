@@ -38,6 +38,7 @@ export const buildPulidPrompt = (
 
   return [
     `Same person as reference photo, preserve identical face shape eyes nose lips jawline.`,
+    `single person only, one face only, solo portrait, centered face, no duplicate faces, no split image.`,
     `${eyewearDesc}.`,
     childGrowth ? `${childGrowth}.` : '',
     `${age}-year-old Korean ${genderEng}. ${ageDesc}. ${genderStyle}.`,

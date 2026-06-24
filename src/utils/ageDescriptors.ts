@@ -126,7 +126,7 @@ const NEGATIVE_BASE = [
   'deformed face, disfigured, distorted features, asymmetrical face',
   'extra limbs, extra fingers, malformed hands',
   'cartoon, anime, illustration, 3D render, CGI, painting',
-  'multiple people, duplicate faces',
+  'multiple people, duplicate faces, two faces, split face, diptych, twin, clone',
   'western caucasian features, non-Korean',
   'different person, wrong face, identity mismatch, stranger, celebrity',
   'earrings, jewelry, piercings, added earrings, added jewelry',
@@ -161,6 +161,8 @@ export const buildNegativePrompt = (
   if (eyewearNegative) {
     result += ', ' + eyewearNegative;
   }
+
+  result += ', two people, duplicate face, split face, half-half portrait, mirrored duplicate, double head, diptych, twins';
 
   return result;
 };

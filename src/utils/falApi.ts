@@ -96,7 +96,7 @@ export const generateTransformedImage = async (
   // 어린이 감지 시 id_weight 소폭 하향 → 성장 변환 허용 (start_step 고정 — 닮음 붕괴 방지)
   if (subjectAge === 'child') {
     const adjust = getChildAgeWeightAdjust(ageStr);
-    id_weight = Math.max(id_weight + adjust, 0.82);
+    id_weight = Math.max(id_weight + adjust, 0.85);
     console.log(`[Fal] 어린이 보정: id_weight ${(id_weight - adjust).toFixed(2)} → ${id_weight.toFixed(2)}`);
   }
   console.log('[Fal] 프롬프트 앞부분:', prompt.slice(0, 120));
@@ -116,10 +116,9 @@ export const generateTransformedImage = async (
       body: JSON.stringify({
         prompt,
         reference_image_url: cdnUrl,
-        // landscape_4_3: 가로형 출력 → 영수증 박스(가로형)와 비율 일치
-        // portrait_4_3(이전): 영수증에서 49%만 표시 → 얼굴 잘림
-        // landscape_4_3(현재): 영수증에서 88% 표시 → 얼굴 자연스럽게 표시
-        image_size: 'landscape_4_3',
+        // portrait_4_3: 단일 인물·얼굴 분할(split) 오류 방지
+        // (landscape_4_3는 가로 넓어 2명/반반 얼굴 아티팩트 발생 가능)
+        image_size: 'portrait_4_3',
         num_inference_steps: 28,
         guidance_scale,
         // ──────────────────────────────────────────────────────────────
