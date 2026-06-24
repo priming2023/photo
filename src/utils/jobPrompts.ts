@@ -12,10 +12,10 @@ export {
   getPulidParams,
 } from './ageDescriptors';
 export type { PulidParams } from './ageDescriptors';
-export { JOB_PROMPTS } from './jobDetails';
+export { JOB_PROMPTS, getJobPrompt, JOB_NEGATIVES } from './jobDetails';
 
 import { getAgeDescriptor, parseAgeNumber, getGenderAgeStyle } from './ageDescriptors';
-import { JOB_PROMPTS } from './jobDetails';
+import { getJobPrompt } from './jobDetails';
 import type { EyewearState } from './eyewearDetection';
 import { getEyewearPrompt } from './eyewearDetection';
 import type { SubjectAgeCategory } from './subjectAgeDetection';
@@ -32,7 +32,7 @@ export const buildPulidPrompt = (
   const ageDesc     = getAgeDescriptor(ageStr, gender);
   const genderEng   = gender === '남자' ? 'man' : 'woman';
   const genderStyle = getGenderAgeStyle(gender, age);
-  const jobDetail   = JOB_PROMPTS[job] ?? 'wearing professional work attire at workplace';
+  const jobDetail   = getJobPrompt(job, gender, ageStr);
   const eyewearDesc = getEyewearPrompt(eyewear);
   const childGrowth = subjectAge === 'child' ? getChildGrowthPrompt(ageStr) : '';
 

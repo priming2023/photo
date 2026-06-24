@@ -72,14 +72,9 @@ export const JOB_PROMPTS: Record<string, string> = {
     'cool RGB blue-purple gaming atmosphere lighting on face, multiple glowing monitors in background, ' +
     'intense focused champion expression',
 
-  // 가수 ────────────────────────────────────────────────────────────────────
-  // E방안: 마이크 입 레벨 → 얼굴 바로 옆 핵심 식별자, 무대 조명 얼굴에 직접 조사
+  // 가수 — 성별·소품은 getJobPrompt()에서 처리 (기본값 폴백용)
   '가수':
-    'wearing a glamorous Korean idol performer stage outfit with bold styling, ' +
-    'holding a professional wireless microphone directly at mouth level — face-level key identifier, ' +
-    'dramatic colorful stage spotlights creating rim lighting directly on face, ' +
-    'stage smoke and blurred audience in background, confetti in air, ' +
-    'charismatic passionate performing expression',
+    'wearing stage performer outfit, holding a standard handheld vocal microphone at chest height',
 
   // 과학자 — 고글은 이마 위에만 (눈 가리면 안경처럼 오인됨)
   '과학자':
@@ -171,8 +166,46 @@ export const JOB_PROMPTS: Record<string, string> = {
     'deeply thoughtful wise creative expression',
 };
 
+/** 가수 등 성별·나이에 따라 달라지는 소품·의상 묘사 */
+const SINGER_MIC =
+  'holding a standard handheld vocal microphone at chest height in one hand — ' +
+  'silver metal mesh grille head about 8cm diameter on straight black handle about 20cm long, ' +
+  'normal human-scale stage microphone NOT wireless earpiece NOT boom arm NOT studio condenser NOT merged with face NOT oversized';
+
+const SINGER_STAGE =
+  'dramatic colorful stage spotlights creating rim lighting on face, ' +
+  'blurred concert stage and audience in background, confetti in air, ' +
+  'charismatic passionate performing expression';
+
+/**
+ * 직업별 프롬프트 — 성별·나이 반영
+ * (가수: 남/여 무대 의상 분리, 마이크는 가슴 높이·실제 크기 고정)
+ */
+export const getJobPrompt = (job: string, gender: string, _ageStr?: string): string => {
+  if (job === '가수') {
+    if (gender === '여자') {
+      return [
+        'wearing glamorous Korean female K-pop idol stage outfit',
+        'sequined performance dress or elegant sparkly stage top with feminine styling',
+        SINGER_MIC,
+        SINGER_STAGE,
+      ].join(', ');
+    }
+    return [
+      'wearing stylish Korean male vocalist stage outfit',
+      'fitted performance blazer leather jacket or masculine stage shirt NOT feminine NOT dress NOT skirt',
+      SINGER_MIC,
+      SINGER_STAGE,
+    ].join(', ');
+  }
+
+  return JOB_PROMPTS[job] ?? 'wearing professional work attire at workplace';
+};
+
 /** 직업별 추가 네거티브 (소품 왜곡 방지) */
 export const JOB_NEGATIVES: Partial<Record<string, string>> = {
   '판사':
     'giant gavel, oversized hammer, war hammer, mallet merged with hand, deformed gavel, multiple gavels, melted wooden object, sledgehammer, toy hammer',
+  '가수':
+    'deformed microphone, giant mic, mic merged with mouth or face, multiple microphones, melted mic, wireless earbud, headset mic boom, studio condenser microphone, microphone stand only',
 };

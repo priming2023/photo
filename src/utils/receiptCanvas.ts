@@ -1,5 +1,6 @@
 import QRCode from 'qrcode';
 import { storeDisplayName } from '../config/store';
+import { getReceiptQrFallbackUrl } from './receiptQr';
 
 /** 203 DPI — 62×100mm 영수증 (오늘 작업 전 검증된 레이아웃) */
 const PRINT_WIDTH = 495;
@@ -156,15 +157,28 @@ const drawImageCover = (
   ctx.strokeRect(x, y, w, h);
 };
 
-const drawQrPlaceholder = (ctx: CanvasRenderingContext2D) => {
-  ctx.fillStyle = '#000000';
-  ctx.fillRect(PRINT_WIDTH - 80, 20, 60, 60);
-  ctx.fillStyle = '#FFFFFF';
-  ctx.fillRect(PRINT_WIDTH - 76, 24, 52, 52);
-  ctx.fillStyle = '#000000';
-  ctx.font = 'bold 10px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('QR CODE', PRINT_WIDTH - 50, 55);
+const drawQrCode = async (
+  ctx: CanvasRenderingContext2D,
+  qrUrl: string,
+): Promise<boolean> => {
+  const urls = [qrUrl, getReceiptQrFallbackUrl()];
+
+  for (const url of urls) {
+    try {
+      const qrDataUrl = await QRCode.toDataURL(url, {
+        margin: 1,
+        width: 200,
+        errorCorrectionLevel: 'M',
+      });
+      const qrImg = await loadImage(qrDataUrl);
+      ctx.drawImage(qrImg, PRINT_WIDTH - 90, 10, 80, 80);
+      return true;
+    } catch (e) {
+      console.warn('[Receipt] QR 생성 실패, 재시도:', url.slice(0, 40), e);
+    }
+  }
+
+  return false;
 };
 
 export interface ReceiptRenderInput {
@@ -201,16 +215,10 @@ export const renderReceiptPreview = async ({
   const dateStr = new Date().toLocaleDateString('ko-KR');
   ctx.fillText(`${dateStr} | 미래의 내 모습 포토부스`, 20, 80);
 
-  if (qrUrl) {
-    try {
-      const qrDataUrl = await QRCode.toDataURL(qrUrl, { margin: 1, width: 80 });
-      const qrImg = await loadImage(qrDataUrl);
-      ctx.drawImage(qrImg, PRINT_WIDTH - 90, 10, 80, 80);
-    } catch {
-      drawQrPlaceholder(ctx);
-    }
-  } else {
-    drawQrPlaceholder(ctx);
+  const effectiveQrUrl = qrUrl || getReceiptQrFallbackUrl();
+  const qrDrawn = await drawQrCode(ctx, effectiveQrUrl);
+  if (!qrDrawn) {
+    console.error('[Receipt] QR 코드를 그리지 못함 — 인쇄 전 재시도 필요');
   }
 
   ctx.beginPath();

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { renderReceiptPreview } from '../utils/receiptCanvas';
-import { uploadImageToSupabase } from '../utils/supabase';
-import { savePhotoSession, buildViewUrl } from '../utils/photoSession';
+import { prepareReceiptQrUrl, type QrPrepareStatus } from '../utils/receiptQr';
 import { printReceiptImage } from '../utils/receiptPrint';
 
 interface ResultProps {
@@ -24,93 +23,62 @@ const Result: React.FC<ResultProps> = ({
   onPrintComplete,
 }) => {
   const [printPreviewUrl, setPrintPreviewUrl] = useState<string>('');
-  const [qrStatus, setQrStatus] = useState<'loading' | 'ok' | 'fallback' | 'fail'>('loading');
+  const [qrUrl, setQrUrl] = useState<string | null>(null);
+  const [qrStatus, setQrStatus] = useState<'loading' | QrPrepareStatus>('loading');
   const [printing, setPrinting] = useState(false);
 
-  const uploadWithRetry = async (src: string, attempts = 3): Promise<string> => {
-    for (let i = 0; i < attempts; i++) {
-      const url = await uploadImageToSupabase(src);
-      if (url) return url;
-      await new Promise((r) => setTimeout(r, 500 * (i + 1)));
-    }
-    return '';
-  };
+  const buildReceipt = async (url: string) =>
+    renderReceiptPreview({
+      originalImage,
+      transformedImage,
+      job,
+      age,
+      qrUrl: url,
+    });
 
   useEffect(() => {
     let cancelled = false;
 
-    const render = async () => {
-      const preview = await renderReceiptPreview({
+    const prepare = async () => {
+      setQrStatus('loading');
+      setQrUrl(null);
+      setPrintPreviewUrl('');
+
+      const result = await prepareReceiptQrUrl(
         originalImage,
         transformedImage,
         job,
         age,
-        qrUrl: undefined,
-      });
-      if (!cancelled && preview) setPrintPreviewUrl(preview);
-    };
-
-    render();
-    return () => { cancelled = true; };
-  }, [originalImage, transformedImage, job, age, gender]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const uploadAndRefreshQr = async () => {
-      setQrStatus('loading');
-
-      const transformedStorageUrl = await uploadWithRetry(
-        transformedImage || originalImage,
+        gender,
       );
       if (cancelled) return;
 
-      const originalStorageUrl = await uploadWithRetry(originalImage);
-      if (cancelled) return;
+      setQrUrl(result.qrUrl);
+      setQrStatus(result.status);
 
-      let viewUrl: string | undefined;
-
-      if (transformedStorageUrl) {
-        const sessionId = await savePhotoSession(
-          transformedStorageUrl,
-          originalStorageUrl || transformedStorageUrl,
-          job,
-          age,
-          gender,
-        );
-        if (!cancelled && sessionId) {
-          viewUrl = buildViewUrl(sessionId);
-          setQrStatus('ok');
-        } else if (!cancelled) {
-          viewUrl = transformedStorageUrl;
-          setQrStatus('fallback');
-          console.warn('[QR] 세션 저장 실패, 스토리지 URL 폴백');
-        }
-      } else if (!cancelled) {
-        setQrStatus('fail');
-      }
-
-      const preview = await renderReceiptPreview({
-        originalImage,
-        transformedImage,
-        job,
-        age,
-        qrUrl: viewUrl,
-      });
+      const preview = await buildReceipt(result.qrUrl);
       if (!cancelled && preview) setPrintPreviewUrl(preview);
     };
 
-    uploadAndRefreshQr();
+    prepare();
     return () => { cancelled = true; };
   }, [originalImage, transformedImage, job, age, gender]);
 
   const handlePrint = async () => {
-    if (!printPreviewUrl || printing) return;
+    if (!qrUrl || printing || qrStatus === 'loading') return;
     setPrinting(true);
 
     try {
-      const result = await printReceiptImage(printPreviewUrl);
+      // 인쇄 직전 QR 포함 영수증 재생성 (미리보기 타이밍 이슈 방지)
+      const freshReceipt = await buildReceipt(qrUrl);
+      if (!freshReceipt) {
+        alert('영수증을 준비하지 못했어요. 잠시 후 다시 시도해 주세요.');
+        return;
+      }
+
+      const result = await printReceiptImage(freshReceipt);
       if (result.success) {
+        setPrintPreviewUrl(freshReceipt);
         onPrintComplete();
       } else {
         alert(`인쇄에 실패했어요.\n${result.reason || '프린터 연결을 확인해 주세요.'}`);
@@ -122,6 +90,8 @@ const Result: React.FC<ResultProps> = ({
       setPrinting(false);
     }
   };
+
+  const qrReady = qrStatus !== 'loading' && !!qrUrl;
 
   return (
     <div className="flex flex-col lg:flex-row w-full min-h-screen lg:h-full p-4 sm:p-8 lg:p-12 items-stretch lg:items-center justify-start lg:justify-between gap-6 lg:gap-12 animate-fade-in pt-20 lg:pt-16 max-w-[1920px] mx-auto overflow-y-auto lg:overflow-hidden">
@@ -157,10 +127,10 @@ const Result: React.FC<ResultProps> = ({
           </button>
           <button
             onClick={handlePrint}
-            disabled={!printPreviewUrl || printing}
+            disabled={!qrReady || !printPreviewUrl || printing}
             className="w-full sm:w-80 py-4 lg:py-6 bg-gray-800 text-white hover:bg-black rounded-2xl lg:rounded-[2rem] text-lg lg:text-2xl font-black transition-all shadow-md hover:scale-105 flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {printing ? '인쇄 중...' : '🖨️ 영수증 인쇄하기'}
+            {printing ? '인쇄 중...' : qrReady ? '🖨️ 영수증 인쇄하기' : 'QR 준비 중...'}
           </button>
         </div>
       </div>
@@ -174,7 +144,7 @@ const Result: React.FC<ResultProps> = ({
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 gap-2">
               <div className="w-8 h-8 border-4 border-gray-200 border-t-blue-400 rounded-full animate-spin" />
-              <span className="text-sm">영수증 준비 중...</span>
+              <span className="text-sm">영수증·QR 준비 중...</span>
             </div>
           )}
         </div>
@@ -187,8 +157,8 @@ const Result: React.FC<ResultProps> = ({
         {qrStatus === 'fallback' && (
           <p className="text-xs text-amber-600 mt-3">QR 연결 (사진 직접 링크)</p>
         )}
-        {qrStatus === 'fail' && (
-          <p className="text-xs text-red-400 mt-3">QR 생성 실패 — 인쇄는 가능합니다</p>
+        {qrStatus === 'home' && (
+          <p className="text-xs text-amber-600 mt-3">QR 연결 (홈페이지 — 업로드 재시도 권장)</p>
         )}
       </div>
     </div>
