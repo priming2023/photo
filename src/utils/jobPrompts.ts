@@ -12,10 +12,10 @@ export {
   getPulidParams,
 } from './ageDescriptors';
 export type { PulidParams } from './ageDescriptors';
-export { JOB_PROMPTS, getJobPrompt, JOB_NEGATIVES } from './jobDetails';
+export { JOB_PROMPTS, getJobPrompt, JOB_NEGATIVES } from './occupationPrompts';
 
 import { getAgeDescriptor, parseAgeNumber, getGenderAgeStyle } from './ageDescriptors';
-import { getJobPrompt } from './jobDetails';
+import { getJobPrompt } from './occupationPrompts';
 import type { EyewearState } from './eyewearDetection';
 import { getEyewearPrompt } from './eyewearDetection';
 import type { SubjectAgeCategory } from './subjectAgeDetection';

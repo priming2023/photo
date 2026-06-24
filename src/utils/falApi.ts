@@ -6,7 +6,7 @@ import {
   getEyewearNegative,
   getEyewearPulidAdjust,
 } from './eyewearDetection';
-import { JOB_NEGATIVES } from './jobDetails';
+import { JOB_NEGATIVES } from './occupationPrompts';
 import { detectSubjectAge, getChildAgeWeightAdjust } from './subjectAgeDetection';
 
 const PULID_ENDPOINT = 'https://fal.run/fal-ai/flux-pulid';
