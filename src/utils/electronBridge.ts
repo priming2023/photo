@@ -15,6 +15,7 @@ declare global {
       isElectron: boolean;
       printReceipt: (imageDataUrl: string) => Promise<PrintResult>;
       listPrinters: () => Promise<PrinterInfo[]>;
+      getPlatformInfo?: () => Promise<{ isElectron: boolean; appUrl: string; useLocal: boolean }>;
     };
   }
 }
