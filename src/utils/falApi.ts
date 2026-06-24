@@ -1,4 +1,4 @@
-import { buildPulidPrompt, buildNegativePrompt, getPulidParams } from './jobPrompts';
+import { buildPulidPrompt, buildNegativePrompt, getPulidParams, ANTI_SPLIT_NEGATIVE } from './jobPrompts';
 import { uploadToFalCdn } from './falCdnUpload';
 import { cropToPortrait } from './imagePreprocess';
 import {
@@ -90,7 +90,7 @@ export const generateTransformedImage = async (
   const negativePrompt = buildNegativePrompt(
     renderAgeStr,
     gender,
-    [getEyewearNegative(eyewear), jobNegative, childNegative].filter(Boolean).join(', '),
+    [ANTI_SPLIT_NEGATIVE, getEyewearNegative(eyewear), jobNegative, childNegative].filter(Boolean).join(', '),
   );
 
   let { id_weight, start_step, guidance_scale } = getPulidParams(renderAgeStr, gender);
@@ -130,8 +130,8 @@ export const generateTransformedImage = async (
       body: JSON.stringify({
         prompt,
         reference_image_url: cdnUrl,
-        // landscape: 상반신·직업 소품(청진기 등)이 프레임에 들어오도록
-        image_size: 'landscape_4_3',
+        // portrait: PuLID 참조(3:4)와 맞춰 split face(좌우 2얼굴) 방지
+        image_size: 'portrait_4_3',
         num_inference_steps: 26,
         guidance_scale,
         id_weight,
