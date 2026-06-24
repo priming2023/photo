@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import Home from './components/Home';
 import Selection from './components/Selection';
 import Camera from './components/Camera';
@@ -9,8 +9,6 @@ import { storeConfig } from './config/store';
 
 const viewId = new URLSearchParams(window.location.search).get('id');
 const isViewPage = window.location.pathname.startsWith('/view') && !!viewId;
-
-const IDLE_TIMEOUT_MS = 45_000;
 
 export type ScreenState = 'HOME' | 'SELECTION' | 'CAMERA' | 'PROCESSING' | 'RESULT';
 
@@ -26,30 +24,6 @@ function App() {
     setCapturedImage(null);
     setTransformedImage(null);
   }, []);
-
-  // 유휴 시 자동 홈 복귀 (Processing 중 제외)
-  useEffect(() => {
-    if (isViewPage) return;
-
-    let timer: ReturnType<typeof setTimeout>;
-
-    const resetIdle = () => {
-      clearTimeout(timer);
-      if (screen !== 'HOME' && screen !== 'PROCESSING') {
-        timer = setTimeout(handleReset, IDLE_TIMEOUT_MS);
-      }
-    };
-
-    window.addEventListener('pointerdown', resetIdle);
-    window.addEventListener('keydown', resetIdle);
-    resetIdle();
-
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener('pointerdown', resetIdle);
-      window.removeEventListener('keydown', resetIdle);
-    };
-  }, [screen, handleReset]);
 
   if (isViewPage) {
     return <ViewPage sessionId={viewId!} />;
@@ -123,7 +97,7 @@ function App() {
               setTransformedImage(null);
               setScreen('CAMERA');
             }}
-            onPrintComplete={handleReset}
+            onPrintComplete={() => { /* 인쇄 후에도 결과 화면 유지 — 처음으로 버튼으로만 복귀 */ }}
           />
         )}
       </div>

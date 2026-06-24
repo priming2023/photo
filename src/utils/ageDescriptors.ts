@@ -75,17 +75,17 @@ export interface PulidParams {
 const FEMALE_PARAMS: Record<number, PulidParams> = {
   25: { id_weight: 0.94, start_step: 2, guidance_scale: 3.5 },
   35: { id_weight: 0.92, start_step: 3, guidance_scale: 3.5 },
-  45: { id_weight: 0.90, start_step: 3, guidance_scale: 3.5 },
-  55: { id_weight: 0.87, start_step: 4, guidance_scale: 3.5 },
-  65: { id_weight: 0.84, start_step: 4, guidance_scale: 3.5 },
+  45: { id_weight: 0.91, start_step: 3, guidance_scale: 3.3 },
+  55: { id_weight: 0.90, start_step: 3, guidance_scale: 3.2 },
+  65: { id_weight: 0.89, start_step: 3, guidance_scale: 3.2 },
 };
 
 const MALE_PARAMS: Record<number, PulidParams> = {
   25: { id_weight: 0.95, start_step: 2, guidance_scale: 3.5 },
   35: { id_weight: 0.93, start_step: 3, guidance_scale: 3.5 },
-  45: { id_weight: 0.91, start_step: 3, guidance_scale: 3.5 },
-  55: { id_weight: 0.89, start_step: 4, guidance_scale: 3.5 },
-  65: { id_weight: 0.87, start_step: 4, guidance_scale: 3.5 },
+  45: { id_weight: 0.92, start_step: 3, guidance_scale: 3.3 },
+  55: { id_weight: 0.91, start_step: 3, guidance_scale: 3.2 },
+  65: { id_weight: 0.90, start_step: 3, guidance_scale: 3.2 },
 };
 
 export const getPulidParams = (ageStr: string, gender: string): PulidParams => {
@@ -132,6 +132,8 @@ const NEGATIVE_BASE = [
   'earrings, jewelry, piercings, added earrings, added jewelry',
   'plastic skin, waxy skin, airbrushed, doll-like, oversaturated, over-sharpened',
   'fake, artificial, uncanny valley, mannequin',
+  'extreme close-up, face filling entire frame, macro portrait, cropped forehead, chin cut off',
+  'beauty filter, glamour retouching, porcelain skin, CGI face, AI generated look',
 ].join(', ');
 
 export const buildNegativePrompt = (

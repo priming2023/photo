@@ -59,7 +59,7 @@ const drawImageCover = (
   w: number,
   h: number,
   mirror: boolean,
-  verticalAlign: 'center' | 'top' = 'top',
+  verticalAlign: 'center' | 'top' | 'upper-body' = 'top',
 ) => {
   const imgAspect = img.width / img.height;
   const boxAspect = w / h;
@@ -77,7 +77,12 @@ const drawImageCover = (
     drawW = w;
     drawH = img.height * (w / img.width);
     drawX = x;
-    drawY = verticalAlign === 'top' ? y : y - (drawH - h) / 2;
+    if (verticalAlign === 'upper-body') {
+      // 얼굴·가슴이 보이도록 상단보다 아래쪽 기준 (AI 클로즈업 보정)
+      drawY = y - (drawH - h) * 0.38;
+    } else {
+      drawY = verticalAlign === 'top' ? y : y - (drawH - h) / 2;
+    }
   }
 
   ctx.save();
@@ -185,12 +190,12 @@ export const renderReceiptPreview = async ({
   const img2Y = 120 + imgHeight + 20;
   try {
     const futureImg = await loadImage(futureSrc);
-    drawImageCover(ctx, futureImg, 20, img2Y, imgWidth, imgHeight, true, 'top');
+    drawImageCover(ctx, futureImg, 20, img2Y, imgWidth, imgHeight, true, 'upper-body');
   } catch (e) {
     console.error('변환 이미지 렌더 실패, 원본으로 대체:', e);
     try {
       const fallback = await loadImage(originalImage);
-      drawImageCover(ctx, fallback, 20, img2Y, imgWidth, imgHeight, true, 'top');
+      drawImageCover(ctx, fallback, 20, img2Y, imgWidth, imgHeight, true, 'upper-body');
     } catch { /* skip */ }
   }
 

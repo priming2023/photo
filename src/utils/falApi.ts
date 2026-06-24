@@ -82,7 +82,7 @@ export const generateTransformedImage = async (
     detectSubjectAge(processedImage),
   ]);
   console.log(
-    `[Fal] 안경: ${eyewear === 'wearing' ? '✅착용' : eyewear === 'not_wearing' ? '❌미착용' : '❓불확실(참조따름)'} | ` +
+    `[Fal] 안경: ${eyewear === 'wearing' ? '✅착용' : '❌미착용'} | ` +
     `피사체: ${subjectAge === 'child' ? '👶어린이' : '🧑성인'}`,
   );
 
@@ -97,15 +97,11 @@ export const generateTransformedImage = async (
   const eyewearAdjust = getEyewearPulidAdjust(eyewear);
   if (eyewearAdjust.idWeightBoost > 0) {
     id_weight = Math.min(id_weight + eyewearAdjust.idWeightBoost, 0.95);
-  }
-  if (eyewearAdjust.startStepReduce > 0) {
     start_step = Math.max(start_step - eyewearAdjust.startStepReduce, 2);
-  }
-  if (eyewear !== 'not_wearing') {
     console.log(`[Fal] 안경 보존 보정: id=${id_weight}, step=${start_step}`);
   }
 
-  // 어린이 감지 시 id_weight 소폭 하향 → 성장 변환 허용 (start_step 고정 — 닮음 붕괴 방지)
+  // 어린이 감지 시 id_weight 소폭 하향
   if (subjectAge === 'child') {
     const adjust = getChildAgeWeightAdjust(ageStr);
     id_weight = Math.max(id_weight + adjust, 0.85);

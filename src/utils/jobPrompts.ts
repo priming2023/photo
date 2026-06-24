@@ -25,7 +25,7 @@ export const buildPulidPrompt = (
   job: string,
   ageStr: string,
   gender: string,
-  eyewear: EyewearState = 'uncertain',
+  eyewear: EyewearState = 'not_wearing',
   subjectAge: SubjectAgeCategory = 'adult',
 ): string => {
   const age         = parseAgeNumber(ageStr);
@@ -37,12 +37,12 @@ export const buildPulidPrompt = (
   const childGrowth = subjectAge === 'child' ? getChildGrowthPrompt(ageStr) : '';
 
   return [
-    `Same person as reference photo, preserve identical face shape eyes nose lips jawline.`,
-    `single person only, one face only, solo portrait, centered face, no duplicate faces, no split image.`,
+    `Same person as reference photo, preserve identical face shape eyes nose lips jawline skin texture.`,
+    `single person only, one face only, solo portrait, no duplicate faces, no split image.`,
     eyewearDesc ? `${eyewearDesc}.` : '',
     childGrowth ? `${childGrowth}.` : '',
     `${age}-year-old Korean ${genderEng}. ${ageDesc}. ${genderStyle}.`,
     `${jobDetail}.`,
-    `Upper body portrait, looking at camera, natural soft lighting, realistic photograph.`,
+    `Medium shot upper body from chest up, head shoulders and upper chest visible, natural arm's length distance, not close-up, soft natural lighting, authentic Korean photograph, subtle real skin texture.`,
   ].filter(Boolean).join(' ');
 };

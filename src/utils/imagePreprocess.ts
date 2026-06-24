@@ -24,8 +24,8 @@ export const cropToPortrait = (base64DataUrl: string): Promise<string> => {
 
       if (srcRatio > TARGET_RATIO) {
         // 가로가 더 넓음 (일반 웹캠 16:9)
-        // Method D: 상단 65%만 사용 → 얼굴 비율 더 크게 (PuLID 얼굴 인식 강화)
-        const usableH = Math.round(srcH * 0.65);
+        // Method D: 상단 80% 사용 → 얼굴+가슴 포함, 클로즈업 완화
+        const usableH = Math.round(srcH * 0.80);
         cropH = usableH;
         cropW = Math.round(usableH * TARGET_RATIO);
         cropX = Math.round((srcW - cropW) / 2); // 수평 중앙 정렬
