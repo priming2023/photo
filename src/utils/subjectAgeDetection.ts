@@ -119,18 +119,18 @@ export const getEffectiveAgeStr = (
 /** 어린이 감지 시 PuLID id_weight 보정 (얼굴 골격을 바꾸기 위해 대폭 낮춤) */
 export const getChildAgeWeightAdjust = (targetAgeStr: string): number => {
   const age = parseAgeNumber(targetAgeStr);
-  if (age <= 40) return -0.35; // 기존 -0.22에서 대폭 하향 (아이 얼굴형 완전 타파)
-  if (age <= 50) return -0.25;
-  if (age <= 60) return -0.15;
-  return -0.10;
+  if (age <= 40) return -0.40; // 20~30대 타겟: 얼굴형 완벽 타파
+  if (age <= 50) return -0.35; // 40대 타겟
+  if (age <= 60) return -0.30; // 50대 타겟
+  return -0.25;                // 60대 타겟
 };
 
 /** 어린이 감지 시 PuLID start_step 지연 (어른 형태를 먼저 잡고 나중에 얼굴 합성) */
 export const getChildStartStepAdjust = (targetAgeStr: string): number => {
   const age = parseAgeNumber(targetAgeStr);
-  if (age <= 40) return 5; // 기존 3에서 증가
-  if (age <= 50) return 4;
-  return 3;
+  if (age <= 40) return 6; // 매우 늦게 얼굴 합성 (골격 유지력 극대화)
+  if (age <= 50) return 5;
+  return 4;
 };
 
 /** 어린이 감지 시 성장 변환 문구 (targetAgeStr = effectiveAge, 이미 offset 반영) */

@@ -81,9 +81,11 @@ export const getEyewearPrompt = (state: EyewearState): string => {
     ].join(', ');
   }
   return [
+    'NO GLASSES',
     'ABSOLUTELY NO eyeglasses NO spectacles NO sunglasses on face',
     'bare eyes clearly visible without any eyewear frames',
     'do not add glasses under any circumstances',
+    'clear face without glasses'
   ].join(', ');
 };
 
@@ -104,6 +106,8 @@ export const getEyewearNegative = (state: EyewearState): string => {
     'adding eyewear',
     'wearing glasses',
     'optical frames on face',
+    'eyewear',
+    'goggles',
   ].join(', ');
 };
 

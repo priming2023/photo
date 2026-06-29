@@ -12,46 +12,46 @@
 export const AGE_DESCRIPTORS: Record<number, string> = {
   25: [
     'looks 25 years old',
-    'smooth youthful skin, full cheeks, bright eyes',
-    'dark hair, no gray, energetic fresh appearance',
+    'youthful skin, bright eyes',
+    'dark hair, no gray, energetic appearance',
   ].join(', '),
 
   35: [
     'looks 35 years old',
-    'healthy smooth skin, very faint smile lines only at eye corners',
-    'dark hair, confident mature professional look',
+    'healthy adult skin, faint smile lines at eye corners',
+    'dark hair, confident mature professional',
   ].join(', '),
 
   45: [
-    'looks 45 years old, clearly middle-aged NOT in 30s',
-    'visible fine crow\'s feet, light nasolabial folds',
-    'some gray strands at temples, mature settled appearance',
+    'looks 45 years old, clearly middle-aged adult NOT in 20s or 30s',
+    'visible crow\'s feet, pronounced nasolabial folds, loss of facial fat',
+    'some gray hair at temples, mature aging skin texture',
   ].join(', '),
 
   55: [
-    'looks 55 years old, mature dignified adult',
-    'natural crow\'s feet, gentle nasolabial folds, some gray at temples',
-    'realistic skin texture with mild age spots, not airbrushed',
+    'looks 55 years old, older middle-aged adult',
+    'deep natural wrinkles around eyes and mouth, noticeable skin sagging, prominent age spots',
+    'salt-and-pepper hair, realistic weathered aging skin, no baby fat',
   ].join(', '),
 
   65: [
-    'looks 65 years old, dignified senior',
-    'natural wrinkles around eyes and mouth, mostly gray hair',
-    'realistic aged Korean skin with gentle texture, wise calm expression',
+    'looks 65 years old, elderly senior',
+    'very deep wrinkles, hollow cheeks, heavily aged weathered skin, complete loss of facial fat',
+    'mostly gray or silver hair, significant skin sagging, wise elder expression',
   ].join(', '),
 };
 
 // ─── 성별별 추가 노화 강조 (프롬프트로 나이 표현 — id_weight는 닮음 유지) ─────
 const FEMALE_AGE_BOOST: Record<number, string> = {
-  45: 'woman in her mid-forties with natural mature skin',
-  55: 'Korean woman in her fifties with salt-and-pepper hair and natural aging, looks about 55',
-  65: 'Korean woman in her sixties with gray hair and gentle wrinkles, looks about 65',
+  45: 'woman in her mid-forties with aging mature skin',
+  55: 'Korean woman in her fifties with salt-and-pepper hair, visible wrinkles, looks about 55',
+  65: 'Korean woman in her sixties with gray hair, deep facial lines, heavily aged skin, looks about 65',
 };
 
 const MALE_AGE_BOOST: Record<number, string> = {
-  45: 'man in his mid-forties, mature masculine features',
-  55: 'Korean man in his fifties with gray temples and natural lines, looks about 55',
-  65: 'Korean man in his sixties with gray hair and weathered natural skin, looks about 65',
+  45: 'man in his mid-forties, mature aged skin',
+  55: 'Korean man in his fifties with gray temples, deep lines, weathered skin, looks about 55',
+  65: 'Korean man in his sixties with gray hair, deep wrinkles, hollow cheeks, looks about 65',
 };
 
 export interface PulidParams {
@@ -61,26 +61,26 @@ export interface PulidParams {
 }
 
 /**
- * PuLID 파라미터 — 닮음 우선, 노화는 프롬프트가 담당
+ * PuLID 파라미터 — 노화(55, 65)를 위해 id_weight 파격 하향, guidance 상향
  *
- * id_weight: 0.84~0.95 (닮음 핵심. 여성 고령만 0.84까지)
- * start_step: 2~4 (공식 권장 범위 준수. 절대 5 이상 금지)
- * guidance: 3.5 고정 (자연스러운 fake CFG)
+ * id_weight: 0.95(20대) -> 0.60(60대)
+ * start_step: 2(20대) -> 5(60대)
+ * guidance: 3.5(20대) -> 5.0(60대)
  */
 const FEMALE_PARAMS: Record<number, PulidParams> = {
-  25: { id_weight: 0.94, start_step: 2, guidance_scale: 3.5 },
-  35: { id_weight: 0.92, start_step: 3, guidance_scale: 3.5 },
-  45: { id_weight: 0.91, start_step: 3, guidance_scale: 3.2 },
-  55: { id_weight: 0.90, start_step: 3, guidance_scale: 2.9 },
-  65: { id_weight: 0.89, start_step: 3, guidance_scale: 2.8 },
+  25: { id_weight: 0.95, start_step: 2, guidance_scale: 3.5 },
+  35: { id_weight: 0.92, start_step: 2, guidance_scale: 3.8 },
+  45: { id_weight: 0.82, start_step: 3, guidance_scale: 4.2 },
+  55: { id_weight: 0.70, start_step: 4, guidance_scale: 4.6 },
+  65: { id_weight: 0.58, start_step: 5, guidance_scale: 5.0 },
 };
 
 const MALE_PARAMS: Record<number, PulidParams> = {
   25: { id_weight: 0.95, start_step: 2, guidance_scale: 3.5 },
-  35: { id_weight: 0.93, start_step: 3, guidance_scale: 3.5 },
-  45: { id_weight: 0.92, start_step: 3, guidance_scale: 3.2 },
-  55: { id_weight: 0.91, start_step: 3, guidance_scale: 2.9 },
-  65: { id_weight: 0.90, start_step: 3, guidance_scale: 2.8 },
+  35: { id_weight: 0.92, start_step: 2, guidance_scale: 3.8 },
+  45: { id_weight: 0.82, start_step: 3, guidance_scale: 4.2 },
+  55: { id_weight: 0.70, start_step: 4, guidance_scale: 4.6 },
+  65: { id_weight: 0.58, start_step: 5, guidance_scale: 5.0 },
 };
 
 export const getPulidParams = (ageStr: string, gender: string): PulidParams => {
@@ -139,21 +139,21 @@ export const buildNegativePrompt = (
 ): string => {
   const age = parseAgeNumber(ageStr);
   const tooYoung = gender === '여자'
-    ? 'looks 20s or 30s or 40s, youthful glowing skin, no wrinkles, dark hair only, too young for age, beautiful young woman, smooth flawless skin'
-    : 'looks 30s or 40s, too young for age, youthful smooth face, no gray hair, middle-aged appearance';
+    ? 'looks 20s or 30s, youthful glowing skin, no wrinkles, smooth flawless skin, baby fat, chubby cheeks'
+    : 'looks 20s or 30s, youthful smooth face, no gray hair, baby fat, chubby cheeks';
 
   let result: string;
 
   if (age <= 30) {
     result = NEGATIVE_BASE + ', wrinkles, gray hair, aged skin, middle-aged';
   } else if (age <= 40) {
-    result = NEGATIVE_BASE + ', heavy wrinkles, gray hair, elderly appearance';
+    result = NEGATIVE_BASE + ', heavy wrinkles, gray hair, elderly appearance, child, baby face';
   } else if (age <= 50) {
-    result = NEGATIVE_BASE + ', elderly, deep wrinkles, mostly white hair, ' + tooYoung;
+    result = NEGATIVE_BASE + ', elderly, deep wrinkles, mostly white hair, child, kid, ' + tooYoung;
   } else if (age <= 60) {
-    result = NEGATIVE_BASE + ', extremely old 80 years, frail, ' + tooYoung;
+    result = NEGATIVE_BASE + ', extremely old 80 years, frail, child, kid, ' + tooYoung;
   } else {
-    result = NEGATIVE_BASE + ', extremely old 90 years, decrepit, ' + tooYoung;
+    result = NEGATIVE_BASE + ', extremely old 90 years, decrepit, child, kid, ' + tooYoung;
   }
 
   if (eyewearNegative) {

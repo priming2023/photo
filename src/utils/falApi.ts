@@ -100,19 +100,20 @@ export const generateTransformedImage = async (
   let { id_weight, start_step, guidance_scale } = getPulidParams(renderAgeStr, gender);
 
   const eyewearAdjust = getEyewearPulidAdjust(eyewear);
-  id_weight = Math.min(Math.max(id_weight + eyewearAdjust.idWeightDelta, 0.60), 0.95);
-  start_step = eyewearAdjust.startStep;
-  console.log(`[Fal] 안경 PuLID: id=${id_weight}, step=${start_step}`);
+  id_weight = Math.min(Math.max(id_weight + eyewearAdjust.idWeightDelta, 0.40), 0.95);
+  // 안경 조정 시 기본 start_step을 무조건 덮어쓰지 않고 최댓값 유지 (노화 step 보호)
+  start_step = Math.max(start_step, eyewearAdjust.startStep);
+  console.log(`[Fal] 기본/안경 PuLID: id=${id_weight}, step=${start_step}`);
 
   if (subjectAge === 'child') {
     const adjustWeight = getChildAgeWeightAdjust(renderAgeStr);
     const adjustStep = getChildStartStepAdjust(renderAgeStr);
     
     // 어린이의 얼굴 골격을 어른으로 바꾸려면 id_weight가 충분히 낮아야 함
-    id_weight = Math.max(id_weight + adjustWeight, 0.45); // 하한선을 0.45까지 대폭 낮춤
+    id_weight = Math.max(id_weight + adjustWeight, 0.35); // 극단적 얼굴 변화 허용 (하한선 0.35)
     // 어른 얼굴 형태를 먼저 잡고 아이 얼굴을 입히도록 start_step 지연
-    start_step = Math.min(start_step + adjustStep, 8); // 최대 8스텝까지 지연
-    guidance_scale = 5.0; // 텍스트 프롬프트(어른 묘사)의 반영도를 높임
+    start_step = Math.min(start_step + adjustStep, 10); // 최대 10스텝까지 지연
+    guidance_scale = 5.5; // 텍스트 프롬프트(어른 묘사)의 반영도를 극대화
     
     console.log(`[Fal] 어린이 보정 적용: id_weight → ${id_weight.toFixed(2)}, start_step → ${start_step}, guidance → ${guidance_scale}`);
   }
