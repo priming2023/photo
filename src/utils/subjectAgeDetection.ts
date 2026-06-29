@@ -104,13 +104,20 @@ export const getEffectiveAgeStr = (
   subjectAge: SubjectAgeCategory,
   gender: string = '남자',
 ): string => {
-  if (subjectAge !== 'child') return selectedAgeStr;
-
   const selected = parseAgeNumber(selectedAgeStr);
   
+  if (subjectAge !== 'child') {
+    // 성인이라도 남자가 55세, 65세를 선택하면 조금 덜 늙어 보이게 오프셋을 마이너스로 줌 (약 3~5년 젊게)
+    if (gender === '남자') {
+      if (selected === 55) return '52살';
+      if (selected === 65) return '60살';
+    }
+    return selectedAgeStr;
+  }
+
   let offset = 0;
   if (selected === 25) {
-    // 25세 선택 시 남자는 완전히 35~40세급(offset +12~15)으로 올려서 성인 티를 확 내고, 여자는 30세 정도로 살짝만
+    // 25세 선택 시 남자는 완전히 35~40세급(offset +15)으로 올려서 성인 티를 확 내고, 여자는 30세 정도로 살짝만
     offset = gender === '남자' ? 15 : 5;
   } else if (selected === 35) {
     // 35세 선택 시 남자는 45세 이상으로 올려 확실한 아저씨 티를 내고, 여자는 45세 급으로
@@ -118,12 +125,11 @@ export const getEffectiveAgeStr = (
   } else if (selected === 45) {
     offset = gender === '남자' ? 10 : 5;
   } else if (selected === 55) {
-    // 남자 55세는 조금 더 젊게(offset을 마이너스로 주거나 0으로 유지하고 base 나이를 낮춤)
-    // AI의 55세 표현이 너무 늙어보이므로, 55세를 50세 급으로 낮춰서 전달
-    if (gender === '남자') offset = -5;
+    // 남자 55세 어른은 오프셋 적용 안 하고 그대로 (0) - 예전처럼 너무 늙어보이면 프롬프트에서 조절
+    offset = 0;
   } else if (selected === 65) {
-    // 남자 65세도 60세 급으로 살짝 젊게
-    if (gender === '남자') offset = -5;
+    // 남자 65세도 그대로 (0)
+    offset = 0;
   }
 
   const adjusted = Math.min(selected + offset, MAX_RENDER_AGE);

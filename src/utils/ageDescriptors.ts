@@ -21,8 +21,8 @@ const MALE_AGE_DESCRIPTORS: Record<number, string> = {
   25: 'looks exactly 25 to 29 years old, fully grown adult Korean man NOT a child, complete loss of baby fat, strong masculine sharp jawline, handsome energetic professional, adult facial proportions',
   35: 'looks exactly 35 to 39 years old, mature Korean man, well-defined masculine facial structure, rugged handsome adult, subtle signs of mature age, confident professional',
   45: 'looks exactly 45 to 49 years old, middle-aged Korean man, visible crow\'s feet, prominent nasolabial folds, slight loss of skin elasticity, masculine mature face, experienced look',
-  55: 'looks exactly 50 to 54 years old, early fifties Korean man, natural expression lines on forehead, slight graying at temples, mature and dignified', // 55세 약간 젊게
-  65: 'looks exactly 60 to 64 years old, early sixties Korean man, visible natural wrinkles, realistic mature skin texture, salt-and-pepper hair, distinguished senior' // 65세 약간 젊게
+  55: 'looks exactly 50 to 54 years old, early fifties Korean man, natural expression lines on forehead, slight graying at temples, mature and dignified',
+  65: 'looks exactly 60 to 64 years old, early sixties Korean man, visible natural wrinkles, realistic mature skin texture, salt-and-pepper hair, distinguished senior'
 };
 
 export interface PulidParams {
@@ -47,11 +47,11 @@ const FEMALE_PARAMS: Record<number, PulidParams> = {
 };
 
 const MALE_PARAMS: Record<number, PulidParams> = {
-  25: { id_weight: 0.85, start_step: 3, guidance_scale: 4.5 }, // 25세의 경우 아이/청소년 얼굴을 강제로 깰 수 있도록 파라미터 대폭 상향(가중치 하향)
+  25: { id_weight: 0.85, start_step: 3, guidance_scale: 4.5 },
   35: { id_weight: 0.90, start_step: 2, guidance_scale: 4.0 },
   45: { id_weight: 0.80, start_step: 3, guidance_scale: 4.4 },
-  55: { id_weight: 0.75, start_step: 3, guidance_scale: 4.6 }, // 55세 조금 덜 늙게 (id_weight 0.75, step 3)
-  65: { id_weight: 0.65, start_step: 4, guidance_scale: 4.8 }, // 65세 조금 덜 늙게 (id_weight 0.65, step 4)
+  55: { id_weight: 0.78, start_step: 3, guidance_scale: 4.2 }, // 55세 덜 늙게 (id_weight 약간 상향, guidance 하향)
+  65: { id_weight: 0.68, start_step: 4, guidance_scale: 4.4 }, // 65세 덜 늙게 (id_weight 약간 상향, guidance 하향)
 };
 
 export const getPulidParams = (ageStr: string, gender: string): PulidParams => {
@@ -167,7 +167,7 @@ export const getGenderAgeStyle = (gender: string, age: number): string => {
   }
 
   switch (snapped) {
-    case 25: return 'neat dark hair, masculine adult face, no baby fat, strong jawline'; 
+    case 25: return 'neat dark hair, clean-shaven, no baby fat, mature adult face'; // clean-shaven 추가, 과도한 masculine 제거
     case 35: return 'neat dark hair, mature professional look, light stubble allowed, masculine features'; 
     case 45: return 'mostly dark hair, gray strands at temples, mature look, masculine facial hair allowed'; 
     case 55: return 'salt-and-pepper hair, gray temples, visible forehead lines, mature masculine, skin aging';
