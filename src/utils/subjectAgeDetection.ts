@@ -108,32 +108,16 @@ export const getEffectiveAgeStr = (
 ): string => {
   const selected = parseAgeNumber(selectedAgeStr);
   
-  if (subjectAge !== 'child') {
-    // 성인이라도 남자가 55세, 65세를 선택하면 조금 덜 늙어 보이게 오프셋을 마이너스로 줌 (약 3~5년 젊게)
-    if (gender === '남자') {
-      if (selected === 55) return '52살';
-      if (selected === 65) return '60살';
-    }
-    return selectedAgeStr;
-  }
+  if (subjectAge !== 'child') return selectedAgeStr;
 
   let offset = 0;
   if (selected === 25) {
-    // 25세 남자: 표현 나이를 33세급으로 올려 성인 신호를 보강함. (과거 +15 처럼 과하게 올린 뒤
-    // 어린이 보정에서 또 세게 부수면 정체성 붕괴로 5살 아기가 됐고, 반대로 너무 약하게 하면
-    // 13살처럼 보임.) 33세 + 적당한 id_weight 하향이 성인 청년으로 보이는 균형점.
+    // 25세 남자: 13살처럼 보이지 않도록 성인 신호 보강
     offset = gender === '남자' ? 8 : 5;
   } else if (selected === 35) {
-    // 35세 선택 시 남자는 45세 급으로, 여자는 45세 급으로
-    offset = gender === '남자' ? 10 : 10;
+    offset = 10;
   } else if (selected === 45) {
-    offset = gender === '남자' ? 5 : 5;
-  } else if (selected === 55) {
-    // 남자 55세 어른은 오프셋 적용 안 하고 그대로 (0) - 예전처럼 너무 늙어보이면 프롬프트에서 조절
-    offset = 0;
-  } else if (selected === 65) {
-    // 남자 65세도 그대로 (0)
-    offset = 0;
+    offset = 5;
   }
 
   const adjusted = Math.min(selected + offset, MAX_RENDER_AGE);

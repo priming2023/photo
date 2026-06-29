@@ -19,10 +19,10 @@ const FEMALE_AGE_DESCRIPTORS: Record<number, string> = {
 
 const MALE_AGE_DESCRIPTORS: Record<number, string> = {
   25: 'a man in his late twenties, looks 27 to 29 years old, clearly an adult man NOT a teenager NOT a child, fully developed masculine facial structure, defined adult jawline, mature clear adult skin, confident young professional',
-  35: 'looks exactly 35 to 39 years old, mature Korean man, well-defined masculine facial structure, rugged handsome adult, subtle signs of mature age, confident professional',
-  45: 'looks exactly 45 to 49 years old, middle-aged Korean man, visible crow\'s feet, prominent nasolabial folds, slight loss of skin elasticity, masculine mature face, experienced look',
-  55: 'looks exactly 50 to 54 years old, early fifties Korean man, natural expression lines on forehead, slight graying at temples, mature and dignified',
-  65: 'looks exactly 60 to 64 years old, early sixties Korean man, visible natural wrinkles, realistic mature skin texture, salt-and-pepper hair, distinguished senior'
+  35: 'looks exactly 35 years old, Korean man in his mid-thirties, healthy clear adult skin, very faint smile lines, well-defined jawline, clean-shaven, confident young professional',
+  45: 'looks exactly 45 years old, middle-aged Korean man in his mid-forties, subtle crow\'s feet, natural nasolabial folds, masculine mature face, experienced look',
+  55: 'looks exactly 55 years old, older middle-aged Korean man, visible natural wrinkles on forehead and around mouth, graying hair at temples, weathered skin',
+  65: 'looks exactly 65 years old, elderly Korean man, deep natural wrinkles, realistic aged skin texture, mostly silver or gray hair, distinguished senior'
 };
 
 export interface PulidParams {
@@ -47,11 +47,11 @@ const FEMALE_PARAMS: Record<number, PulidParams> = {
 };
 
 const MALE_PARAMS: Record<number, PulidParams> = {
-  25: { id_weight: 0.70, start_step: 4, guidance_scale: 4.6 }, // 25세 요리사: 어른으로 오판되더라도 아이 골격을 깨버림. guidance를 4.6으로 살짝 낮춰 너무 인위적이지 않게 조절
-  35: { id_weight: 0.80, start_step: 3, guidance_scale: 4.4 },
-  45: { id_weight: 0.80, start_step: 3, guidance_scale: 4.4 },
-  55: { id_weight: 0.78, start_step: 3, guidance_scale: 4.2 }, // 55세 덜 늙게 (id_weight 약간 상향, guidance 하향)
-  65: { id_weight: 0.68, start_step: 4, guidance_scale: 4.4 }, // 65세 덜 늙게 (id_weight 약간 상향, guidance 하향)
+  25: { id_weight: 0.70, start_step: 4, guidance_scale: 4.6 }, // 25세 남자 전용: 현재 유지
+  35: { id_weight: 0.92, start_step: 2, guidance_scale: 3.8 },
+  45: { id_weight: 0.82, start_step: 3, guidance_scale: 4.2 },
+  55: { id_weight: 0.70, start_step: 4, guidance_scale: 4.6 },
+  65: { id_weight: 0.58, start_step: 5, guidance_scale: 5.0 },
 };
 
 export const getPulidParams = (ageStr: string, gender: string): PulidParams => {
@@ -113,18 +113,14 @@ export const buildNegativePrompt = (
     if (age >= 35) tooYoung = 'looks 20s, college student, teenage, baby face, chubby cheeks, overly youthful';
     if (age >= 45) tooYoung += ', looks 30s, flawless skin, no wrinkles';
   } else {
-    // 남자는 너무 어려보이는 경향을 아주 강력하게 방어
-    if (age >= 25) tooYoung = 'baby, infant, toddler, preschooler, looks like a teenager, boy, child, kid, baby face, high school student, chubby cheeks, youthful';
-    if (age <= 30) tooYoung += ', preteen, middle school student, 13 year old, young teenager, round childish face'; // 남자 25세 전용: 13살처럼 보이는 현상 추가 차단 (35세+에는 영향 없음)
-    if (age >= 35) tooYoung += ', looks 20s, college student, young boy, youth';
-    if (age >= 45) tooYoung += ', looks 30s, youthful skin, no wrinkles, smooth face';
-    if (age >= 55) tooYoung += ', looks 40s, dark hair only';
+    // 25세 남자는 너무 어려보이는 경향을 아주 강력하게 방어
+    if (age <= 30) tooYoung = 'baby, infant, toddler, preschooler, looks like a teenager, boy, child, kid, baby face, high school student, chubby cheeks, youthful, preteen, middle school student, 13 year old, young teenager, round childish face';
     
     // 남자는 너무 늙어보이는 경향 방어 완화 (제 나이 찾기)
     if (age <= 25) tooOld = 'looks 50s, deep wrinkles, white hair, elderly'; // 25세 남자는 40대라는 부정프롬프트를 없애서 실수로 아이가 되는 현상 방어
-    else if (age <= 35) tooOld = 'looks 60s, completely white hair, elderly';
-    else if (age <= 45) tooOld = 'looks 70s, very deep wrinkles, completely white hair';
-    else if (age <= 55) tooOld = 'looks 80s, extremely old, frail, decrepit';
+    else if (age <= 35) tooOld = 'looks 50s, deep wrinkles, old man, tired look'; // 과거 만족했던 상태(1fef41e)로 복원
+    else if (age <= 45) tooOld = 'looks 60s, deep wrinkles, completely white hair';
+    // 55세 이상은 tooOld 없음
   }
 
   let result = NEGATIVE_BASE;
@@ -168,11 +164,11 @@ export const getGenderAgeStyle = (gender: string, age: number): string => {
   }
 
   switch (snapped) {
-    case 25: return 'neat dark hair, clean-shaven, no baby fat, mature adult face'; // clean-shaven 추가, 과도한 masculine 제거
-    case 35: return 'neat dark hair, mature professional look, light stubble allowed, masculine features'; 
-    case 45: return 'mostly dark hair, gray strands at temples, mature look, masculine facial hair allowed'; 
-    case 55: return 'salt-and-pepper hair, gray temples, visible forehead lines, mature masculine, skin aging';
-    case 65: return 'mostly gray or silver hair, weathered mature face, distinguished elder, facial wrinkles';
+    case 25: return 'neat dark hair, clean-shaven, no baby fat, mature adult face'; // 25세 남자 전용: 현재 유지
+    case 35: return 'neat dark hair, completely clean-shaven, mature professional look';
+    case 45: return 'mostly dark hair, gray strands at temples, mature look, clean-shaven'; 
+    case 55: return 'salt-and-pepper hair, gray temples, visible forehead lines, mature masculine';
+    case 65: return 'mostly gray or silver hair, gray beard stubble optional, weathered mature face, distinguished elder';
     default: return 'neat groomed hair';
   }
 };
