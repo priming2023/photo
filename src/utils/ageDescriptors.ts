@@ -47,8 +47,8 @@ const FEMALE_PARAMS: Record<number, PulidParams> = {
 };
 
 const MALE_PARAMS: Record<number, PulidParams> = {
-  25: { id_weight: 0.85, start_step: 3, guidance_scale: 4.5 },
-  35: { id_weight: 0.90, start_step: 2, guidance_scale: 4.0 },
+  25: { id_weight: 0.70, start_step: 4, guidance_scale: 4.8 }, // 어른으로 오판되더라도 아이 골격을 완전히 깨버림
+  35: { id_weight: 0.80, start_step: 3, guidance_scale: 4.4 },
   45: { id_weight: 0.80, start_step: 3, guidance_scale: 4.4 },
   55: { id_weight: 0.78, start_step: 3, guidance_scale: 4.2 }, // 55세 덜 늙게 (id_weight 약간 상향, guidance 하향)
   65: { id_weight: 0.68, start_step: 4, guidance_scale: 4.4 }, // 65세 덜 늙게 (id_weight 약간 상향, guidance 하향)
@@ -114,7 +114,7 @@ export const buildNegativePrompt = (
     if (age >= 45) tooYoung += ', looks 30s, flawless skin, no wrinkles';
   } else {
     // 남자는 너무 어려보이는 경향을 아주 강력하게 방어
-    if (age >= 25) tooYoung = 'looks like a teenager, boy, child, kid, baby face, high school student, chubby cheeks, youthful';
+    if (age >= 25) tooYoung = 'baby, infant, toddler, preschooler, looks like a teenager, boy, child, kid, baby face, high school student, chubby cheeks, youthful';
     if (age >= 35) tooYoung += ', looks 20s, college student, young boy, youth';
     if (age >= 45) tooYoung += ', looks 30s, youthful skin, no wrinkles, smooth face';
     if (age >= 55) tooYoung += ', looks 40s, dark hair only';

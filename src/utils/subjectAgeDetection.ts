@@ -69,7 +69,9 @@ const analyzeSubjectAge = (img: HTMLImageElement): SubjectAgeCategory => {
   );
 
   const avgVariance = (leftCheek + rightCheek + forehead * 1.2) / 3.2;
-  const isChild = avgVariance < 9;
+  // 대부분의 사용자가 어린이이므로, 아주 주름이 깊은 노인이 아니면 모두 '어린이'로 판정하여
+  // 어린이 보정 로직(골격 파괴 및 나이 오프셋)을 적용하도록 임계값을 9에서 20으로 대폭 상향
+  const isChild = avgVariance < 20;
 
   console.log(
     `[SubjectAge] 뺨L=${leftCheek.toFixed(1)} 뺨R=${rightCheek.toFixed(1)} ` +
@@ -117,13 +119,13 @@ export const getEffectiveAgeStr = (
 
   let offset = 0;
   if (selected === 25) {
-    // 25세 선택 시 남자는 완전히 35~40세급(offset +15)으로 올려서 성인 티를 확 내고, 여자는 30세 정도로 살짝만
-    offset = gender === '남자' ? 15 : 5;
-  } else if (selected === 35) {
-    // 35세 선택 시 남자는 45세 이상으로 올려 확실한 아저씨 티를 내고, 여자는 45세 급으로
-    offset = gender === '남자' ? 15 : 10;
-  } else if (selected === 45) {
+    // 25세 선택 시 남자는 확실한 35세급(offset +10)으로 올려서 성인 티를 냄, 여자는 30세 정도로 살짝만
     offset = gender === '남자' ? 10 : 5;
+  } else if (selected === 35) {
+    // 35세 선택 시 남자는 45세 급으로, 여자는 45세 급으로
+    offset = gender === '남자' ? 10 : 10;
+  } else if (selected === 45) {
+    offset = gender === '남자' ? 5 : 5;
   } else if (selected === 55) {
     // 남자 55세 어른은 오프셋 적용 안 하고 그대로 (0) - 예전처럼 너무 늙어보이면 프롬프트에서 조절
     offset = 0;
