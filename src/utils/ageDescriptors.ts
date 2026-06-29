@@ -9,49 +9,20 @@
  */
 
 // ─── 나이별 시각 묘사 (성별 공통 베이스) ────────────────────────────────────
-export const AGE_DESCRIPTORS: Record<number, string> = {
-  25: [
-    'looks exactly 25 years old, young adult in their mid-twenties',
-    'smooth firm skin, sharp clean jawline, vibrant bright eyes, flawless complexion without deep lines',
-    'dark hair, energetic and fresh appearance',
-  ].join(', '),
-
-  35: [
-    'looks exactly 35 years old, mature adult in their mid-thirties',
-    'healthy skin with very subtle laugh lines, well-defined facial structure, complete loss of teenage baby fat',
-    'dark hair, confident and settled professional appearance',
-  ].join(', '),
-
-  45: [
-    'looks exactly 45 years old, middle-aged adult in their mid-forties',
-    'visible fine lines around eyes, natural nasolabial folds, slight loss of skin elasticity',
-    'some gray hairs starting to show, mature and experienced look',
-  ].join(', '),
-
-  55: [
-    'looks exactly 55 years old, older middle-aged adult in their mid-fifties',
-    'prominent crow\'s feet and smile lines, visible skin texture changes, mild skin sagging around jaw',
-    'noticeable salt-and-pepper hair, realistic aging skin, dignified appearance',
-  ].join(', '),
-
-  65: [
-    'looks exactly 65 years old, elderly senior citizen in their mid-sixties',
-    'deep natural wrinkles, pronounced nasolabial folds, realistic aged skin texture with age spots',
-    'mostly silver or gray hair, loose skin around neck and jaw, wise and calm expression',
-  ].join(', '),
+const FEMALE_AGE_DESCRIPTORS: Record<number, string> = {
+  25: 'looks exactly 25 years old, young adult Korean woman, smooth firm skin, sharp clean jawline, vibrant bright eyes, flawless complexion, youthful professional',
+  35: 'looks exactly 35 years old, mature Korean woman in her mid-thirties, well-defined facial structure, complete loss of teenage baby fat, elegant mature face, sophisticated professional look NOT in 20s',
+  45: 'looks exactly 45 years old, middle-aged Korean woman in her mid-forties, visible fine lines around eyes, natural nasolabial folds, slight loss of skin elasticity, mature skin',
+  55: 'looks exactly 55 years old, older middle-aged Korean woman, prominent crow\'s feet and smile lines, visible skin aging, salt-and-pepper hair, realistic mature skin texture, no baby fat',
+  65: 'looks exactly 65 years old, dignified elderly Korean woman, natural deep wrinkles, pronounced nasolabial folds, realistic aged skin texture, mostly silver or gray hair, wise calm expression'
 };
 
-// ─── 성별별 추가 노화 강조 (프롬프트로 나이 표현 — id_weight는 닮음 유지) ─────
-const FEMALE_AGE_BOOST: Record<number, string> = {
-  45: 'Korean woman in her mid-forties, elegant mature face, realistic skin texture',
-  55: 'Korean woman in her mid-fifties, graying hair, visible natural wrinkles on forehead and around mouth, looks about 55',
-  65: 'Korean woman in her mid-sixties, silver hair, deep facial lines, gracefully aged and wrinkled skin, looks about 65',
-};
-
-const MALE_AGE_BOOST: Record<number, string> = {
-  45: 'Korean man in his mid-forties, masculine mature face, realistic skin texture',
-  55: 'Korean man in his mid-fifties, graying hair at temples, natural forehead lines, weathered skin, looks about 55',
-  65: 'Korean man in his mid-sixties, silver hair, deep wrinkles and age lines, distinguished elderly look, looks about 65',
+const MALE_AGE_DESCRIPTORS: Record<number, string> = {
+  25: 'looks exactly 25 years old, young adult Korean man, smooth clear skin, no deep lines, completely clean-shaven, energetic fresh appearance, youthful',
+  35: 'looks exactly 35 years old, Korean man in his mid-thirties, healthy clear adult skin, no deep wrinkles, clean-shaven, confident young professional, energetic', // 남성은 너무 늙어보이지 않게 (stubble이나 laugh lines 배제)
+  45: 'looks exactly 45 years old, middle-aged Korean man in his mid-forties, subtle crow\'s feet, natural nasolabial folds, masculine mature face, experienced look',
+  55: 'looks exactly 55 years old, older middle-aged Korean man, visible natural wrinkles on forehead and around mouth, graying hair at temples, weathered skin',
+  65: 'looks exactly 65 years old, elderly Korean man, deep natural wrinkles, realistic aged skin texture, mostly silver or gray hair, distinguished senior'
 };
 
 export interface PulidParams {
@@ -100,15 +71,10 @@ const snapAge = (age: number): number => {
 export const getAgeDescriptor = (ageStr: string, gender?: string): string => {
   const age = parseAgeNumber(ageStr);
   const snapped = snapAge(age);
-  const base = AGE_DESCRIPTORS[snapped];
-
-  if (!gender || snapped < 45) return base;
-
-  const boost = gender === '여자'
-    ? FEMALE_AGE_BOOST[snapped]
-    : MALE_AGE_BOOST[snapped];
-
-  return boost ? `${base}, ${boost}` : base;
+  
+  return gender === '여자' 
+    ? FEMALE_AGE_DESCRIPTORS[snapped] 
+    : MALE_AGE_DESCRIPTORS[snapped];
 };
 
 export const parseAgeNumber = (ageStr: string): number => {
@@ -139,27 +105,36 @@ export const buildNegativePrompt = (
   eyewearNegative?: string,
 ): string => {
   const age = parseAgeNumber(ageStr);
-  const tooYoung = gender === '여자'
-    ? 'looks 20s or 30s, youthful glowing skin, no wrinkles, smooth flawless skin, baby fat, chubby cheeks'
-    : 'looks 20s or 30s, youthful smooth face, no gray hair, baby fat, chubby cheeks';
+  let tooYoung = '';
+  let tooOld = '';
 
-  let result: string;
+  if (gender === '여자') {
+    // 여자는 너무 어려보이는 경향 방어
+    if (age >= 35) tooYoung = 'looks 20s, college student, teenage, baby face, chubby cheeks, overly youthful';
+    if (age >= 45) tooYoung += ', looks 30s, flawless skin, no wrinkles';
+  } else {
+    // 남자는 너무 늙어보이는 경향 방어
+    if (age <= 35) tooOld = 'looks 40s, middle-aged, wrinkles, aged skin, heavy stubble, old man, tired look';
+    if (age <= 45) tooOld += ', looks 50s, deep wrinkles, gray hair';
+  }
+
+  let result = NEGATIVE_BASE;
 
   if (age <= 30) {
-    result = NEGATIVE_BASE + ', wrinkles, gray hair, aged skin, middle-aged';
+    result += ', wrinkles, gray hair, aged skin, middle-aged';
   } else if (age <= 40) {
-    result = NEGATIVE_BASE + ', heavy wrinkles, gray hair, elderly appearance, child, baby face';
+    result += ', heavy wrinkles, gray hair, elderly appearance, child, baby face';
   } else if (age <= 50) {
-    result = NEGATIVE_BASE + ', elderly, deep wrinkles, mostly white hair, child, kid, ' + tooYoung;
+    result += ', elderly, deep wrinkles, mostly white hair, child, kid';
   } else if (age <= 60) {
-    result = NEGATIVE_BASE + ', extremely old 80 years, frail, child, kid, ' + tooYoung;
+    result += ', extremely old 80 years, frail, child, kid';
   } else {
-    result = NEGATIVE_BASE + ', extremely old 90 years, decrepit, child, kid, ' + tooYoung;
+    result += ', extremely old 90 years, decrepit, child, kid';
   }
 
-  if (eyewearNegative) {
-    result += ', ' + eyewearNegative;
-  }
+  if (tooYoung) result += ', ' + tooYoung;
+  if (tooOld) result += ', ' + tooOld;
+  if (eyewearNegative) result += ', ' + eyewearNegative;
 
   result += ', two people, duplicate face, split face, half-half portrait, mirrored duplicate, double head, diptych, twins';
 
@@ -175,8 +150,8 @@ export const getGenderAgeStyle = (gender: string, age: number): string => {
   if (gender === '여자') {
     switch (snapped) {
       case 25: return 'neat dark hairstyle, minimal makeup, no earrings';
-      case 35: return 'professional dark hairstyle, subtle makeup, no earrings';
-      case 45: return 'mature hairstyle, mostly dark hair with gray at temples, light makeup, no earrings';
+      case 35: return 'elegant mature hairstyle, sophisticated professional makeup, mature woman look, no earrings';
+      case 45: return 'mature hairstyle, mostly dark hair, elegant light makeup, no earrings';
       case 55: return 'mature hairstyle with prominent gray and silver streaks, visible aging on face, no earrings, no makeup hiding wrinkles';
       case 65: return 'silver-gray elderly hairstyle, mostly gray hair, aged face with wrinkles clearly visible, no earrings';
       default: return 'neat hairstyle, no earrings';
@@ -184,9 +159,9 @@ export const getGenderAgeStyle = (gender: string, age: number): string => {
   }
 
   switch (snapped) {
-    case 25: return 'neat dark hair, clean-shaven, youthful';
-    case 35: return 'neat dark hair, clean-shaven or light stubble';
-    case 45: return 'mostly dark hair, gray strands at temples, mature look';
+    case 25: return 'neat dark hair, completely clean-shaven, youthful skin';
+    case 35: return 'neat dark hair, completely clean-shaven, fresh healthy face, youthful'; // 수염(stubble) 제거
+    case 45: return 'mostly dark hair, gray strands at temples, mature look, clean-shaven'; // 인공적 노화 방지 위해 수염 제거
     case 55: return 'salt-and-pepper hair, gray temples, visible forehead lines, mature masculine';
     case 65: return 'mostly gray or silver hair, gray beard stubble optional, weathered mature face, distinguished elder';
     default: return 'neat groomed hair';

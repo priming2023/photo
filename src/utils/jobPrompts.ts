@@ -3,7 +3,6 @@
  */
 
 export {
-  AGE_DESCRIPTORS,
   getAgeDescriptor,
   parseAgeNumber,
   buildNegativePrompt,
