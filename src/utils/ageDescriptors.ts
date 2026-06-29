@@ -115,6 +115,7 @@ export const buildNegativePrompt = (
   } else {
     // 남자는 너무 어려보이는 경향을 아주 강력하게 방어
     if (age >= 25) tooYoung = 'baby, infant, toddler, preschooler, looks like a teenager, boy, child, kid, baby face, high school student, chubby cheeks, youthful';
+    if (age <= 30) tooYoung += ', preteen, middle school student, 13 year old, young teenager, round childish face'; // 남자 25세 전용: 13살처럼 보이는 현상 추가 차단 (35세+에는 영향 없음)
     if (age >= 35) tooYoung += ', looks 20s, college student, young boy, youth';
     if (age >= 45) tooYoung += ', looks 30s, youthful skin, no wrinkles, smooth face';
     if (age >= 55) tooYoung += ', looks 40s, dark hair only';

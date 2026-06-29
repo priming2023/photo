@@ -104,8 +104,8 @@ export const generateTransformedImage = async (
   }
 
   if (subjectAge === 'child') {
-    const adjustWeight = getChildAgeWeightAdjust(renderAgeStr);
-    const adjustStep = getChildStartStepAdjust(renderAgeStr);
+    const adjustWeight = getChildAgeWeightAdjust(renderAgeStr, gender);
+    const adjustStep = getChildStartStepAdjust(renderAgeStr, gender);
     
     if (eyewear === 'wearing') {
       // 어린이가 안경을 썼을 때: 안경을 지켜야 하므로 id_weight를 너무 낮출 수 없음. 타협점 적용

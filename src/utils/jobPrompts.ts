@@ -33,7 +33,7 @@ export const buildPulidPrompt = (
   const genderStyle = getGenderAgeStyle(gender, age);
   const jobDetail   = getJobPrompt(job, gender, ageStr);
   const eyewearDesc = getEyewearPrompt(eyewear);
-  const childGrowth = subjectAge === 'child' ? getChildGrowthPrompt(ageStr) : '';
+  const childGrowth = subjectAge === 'child' ? getChildGrowthPrompt(ageStr, gender) : '';
 
   const parts = [
     eyewearDesc ? `${eyewearDesc}.` : '',

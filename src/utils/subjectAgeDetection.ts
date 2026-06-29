@@ -119,10 +119,10 @@ export const getEffectiveAgeStr = (
 
   let offset = 0;
   if (selected === 25) {
-    // 25세 남자: 표현 나이를 30세급으로만 살짝 올림. (과거 +15/+8 처럼 과하게 올린 뒤
-    // 어린이 보정에서 또 세게 부수면 정체성 붕괴로 5살 아기가 됐음.) 30세는 성인 안전성을
-    // 보장하면서도 청년 느낌을 유지하는 균형점.
-    offset = gender === '남자' ? 5 : 5;
+    // 25세 남자: 표현 나이를 33세급으로 올려 성인 신호를 보강함. (과거 +15 처럼 과하게 올린 뒤
+    // 어린이 보정에서 또 세게 부수면 정체성 붕괴로 5살 아기가 됐고, 반대로 너무 약하게 하면
+    // 13살처럼 보임.) 33세 + 적당한 id_weight 하향이 성인 청년으로 보이는 균형점.
+    offset = gender === '남자' ? 8 : 5;
   } else if (selected === 35) {
     // 35세 선택 시 남자는 45세 급으로, 여자는 45세 급으로
     offset = gender === '남자' ? 10 : 10;
@@ -142,31 +142,57 @@ export const getEffectiveAgeStr = (
 
 /**
  * 어린이 감지 시 PuLID id_weight 보정.
- * 핵심: "젊은 목표일수록 약하게, 늙은 목표일수록 강하게" 변형해야 함.
- * 25세 선택(표현 33세급)은 아이 얼굴과 가장 가까운 청년이므로 살짝만 다듬어야 한다.
- * 과거처럼 -0.40 + step+6 으로 과하게 부수면 정체성이 붕괴되어 오히려 5살 아기로 회귀함.
+ * - 여자: 사용자가 만족했던 기존 수치 그대로 (절대 변경 금지)
+ * - 남자: "젊은 목표일수록 약하게, 늙은 목표일수록 강하게" 변형.
+ *   25세 선택(표현 33세급)은 아이 얼굴과 가까운 청년이라 과하게 부수면 5살로 붕괴,
+ *   너무 약하면 13살로 남으므로 -0.25(0.80→0.55)가 균형점.
  */
-export const getChildAgeWeightAdjust = (targetAgeStr: string): number => {
+export const getChildAgeWeightAdjust = (targetAgeStr: string, gender: string = '남자'): number => {
   const age = parseAgeNumber(targetAgeStr);
-  if (age <= 36) return -0.12; // 20대 청년 타겟: 살짝만 골격 정리 → 안정적 성인 청년 유지
+  if (gender === '여자') {
+    // 여자: 세션 전 만족했던 원래 수치 그대로 유지
+    if (age <= 40) return -0.40;
+    if (age <= 50) return -0.35;
+    if (age <= 60) return -0.30;
+    return -0.25;
+  }
+  // 남자 전용 튜닝
+  if (age <= 36) return -0.25; // 20대 청년 타겟: 아이 얼굴 닮음을 적당히 줄여 13살처럼 안 보이게 (0.80→0.55)
   if (age <= 50) return -0.35; // 40대 타겟: 강하게 변형
   if (age <= 60) return -0.30; // 50대 타겟
   return -0.25;                // 60대 타겟
 };
 
 /** 어린이 감지 시 PuLID start_step 지연 (어른 형태를 먼저 잡고 나중에 얼굴 합성) */
-export const getChildStartStepAdjust = (targetAgeStr: string): number => {
+export const getChildStartStepAdjust = (targetAgeStr: string, gender: string = '남자'): number => {
   const age = parseAgeNumber(targetAgeStr);
+  if (gender === '여자') {
+    // 여자: 세션 전 만족했던 원래 수치 그대로 유지
+    if (age <= 40) return 6;
+    if (age <= 50) return 5;
+    return 4;
+  }
+  // 남자 전용 튜닝
   if (age <= 36) return 1; // 청년 타겟: 얼굴 합성을 이르게 시작해 정체성 안정(아기 붕괴 방지)
   if (age <= 50) return 5; // 40대 타겟: 늦게 합성해 골격 유지력 확보
   return 4;
 };
 
 /** 어린이 감지 시 성장 변환 문구 (targetAgeStr = effectiveAge, 이미 offset 반영) */
-export const getChildGrowthPrompt = (targetAgeStr: string): string => {
+export const getChildGrowthPrompt = (targetAgeStr: string, gender: string = '남자'): string => {
   const age = parseAgeNumber(targetAgeStr);
 
   if (age <= 40) {
+    if (gender === '여자') {
+      // 여자: 장기간 만족했던 원래 기준(1fef41e) 문구 그대로 복원 (성별 중립, 단어까지 동일)
+      return (
+        'Completely transform this child into a fully mature adult Korean. ' +
+        'ABSOLUTELY NO CHILD FEATURES. Complete loss of baby fat, sharp adult jawline, elongated adult face shape, ' +
+        'mature adult bone structure and adult facial proportions. ' +
+        'Prominent adult cheekbones, adult eye socket depth, full adult maturity.'
+      );
+    }
+    // 남자: 13살처럼 안 보이게 성인 남성 강조
     return (
       'Transform this child into a fully grown ADULT Korean man in his late twenties. ' +
       'He is an ADULT MAN, absolutely NOT a child, NOT a baby, NOT a toddler, NOT a teenager, NOT a kid. ' +
