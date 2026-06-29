@@ -117,6 +117,13 @@ export const getEffectiveAgeStr = (
     offset = gender === '남자' ? 15 : 10;
   } else if (selected === 45) {
     offset = gender === '남자' ? 10 : 5;
+  } else if (selected === 55) {
+    // 남자 55세는 조금 더 젊게(offset을 마이너스로 주거나 0으로 유지하고 base 나이를 낮춤)
+    // AI의 55세 표현이 너무 늙어보이므로, 55세를 50세 급으로 낮춰서 전달
+    if (gender === '남자') offset = -5;
+  } else if (selected === 65) {
+    // 남자 65세도 60세 급으로 살짝 젊게
+    if (gender === '남자') offset = -5;
   }
 
   const adjusted = Math.min(selected + offset, MAX_RENDER_AGE);
