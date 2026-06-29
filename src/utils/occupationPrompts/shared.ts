@@ -31,7 +31,7 @@ export const PUPPY_CRADLE =
   'gently cradling a small fluffy puppy at chest level — puppy about 20cm, normal pet size NOT giant dog';
 
 export const SINGER_STAGE =
-  'dramatic colorful stage spotlights on face, blurred concert stage background, charismatic performing expression';
+  'dramatic colorful stage spotlights on face, blurred concert stage with glowing neon lights and audience behind, charismatic performing expression';
 
 export const WAIST_UP_NOTE =
   'occupational props clearly visible at chest and hand level';

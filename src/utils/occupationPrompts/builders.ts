@@ -36,10 +36,8 @@ export const buildAthletePrompt = ({ gender, age }: JobPromptCtx): string => {
     rank === 'senior'
       ? 'standing proudly on stadium sideline as seasoned veteran player'
       : 'victorious pose head held high on football pitch',
-    'dramatic stadium floodlights on face, blurred cheering crowd behind',
+    'dramatic stadium floodlights on face, blurred professional sports stadium with bright floodlights and cheering crowd behind',
     'triumphant confident champion expression',
-    'professional modern background suitable for this occupation, soft cinematic lighting',
-    'professional modern background suitable for this occupation, soft cinematic lighting',
     WAIST_UP_NOTE,
   );
 };
@@ -63,10 +61,8 @@ export const buildDoctorPrompt = ({ gender, age }: JobPromptCtx): string => {
     badge,
     STETHOSCOPE,
     'holding medical chart clipboard at chest level in one hand',
-    'bright clean hospital white lighting on face, blurred Korean hospital corridor',
+    'bright clean hospital white lighting on face, blurred modern Korean hospital corridor and professional medical equipment behind',
     'professional compassionate trusted doctor expression',
-    'professional modern background suitable for this occupation, soft cinematic lighting',
-    'professional modern background suitable for this occupation, soft cinematic lighting',
     WAIST_UP_NOTE,
   );
 };
@@ -90,8 +86,6 @@ export const buildYoutuberPrompt = ({ gender, age }: JobPromptCtx): string => {
     'wearing small wireless lavalier mic clipped to shirt collar',
     'bright and soft studio lighting, blurred modern room with tasteful decor and warm ambient lights in background',
     'warm friendly confident smile, looking directly at camera, natural engaging expression',
-    'professional modern background suitable for this occupation, soft cinematic lighting',
-    'professional modern background suitable for this occupation, soft cinematic lighting',
     WAIST_UP_NOTE,
   );
 };
@@ -120,10 +114,8 @@ export const buildTeacherPrompt = ({ gender, age }: JobPromptCtx): string => {
     role,
     MARKER_POINTER,
     'whiteboard or chalkboard visible behind',
-    'warm natural classroom lighting, Korean school classroom',
+    'warm natural classroom lighting, blurred modern Korean school classroom with desks and whiteboard behind',
     'warm authoritative knowledgeable teacher expression',
-    'professional modern background suitable for this occupation, soft cinematic lighting',
-    'professional modern background suitable for this occupation, soft cinematic lighting',
     WAIST_UP_NOTE,
   );
 };
@@ -140,10 +132,8 @@ export const buildChefPrompt = ({ gender, age }: JobPromptCtx): string => {
     'tall white toque chef hat prominently on head — key head-level identifier',
     rank === 'senior' && 'executive head chef black-and-gold neckerchief or chef rank insignia',
     CHEF_KNIFE,
-    'warm amber kitchen lighting on face, professional stainless steel kitchen behind',
+    'warm amber kitchen lighting on face, blurred professional stainless steel restaurant kitchen with warm ambient lighting behind',
     rank === 'senior' ? 'master chef accomplished dignified expression' : 'proud accomplished chef expression',
-    'professional modern background suitable for this occupation, soft cinematic lighting',
-    'professional modern background suitable for this occupation, soft cinematic lighting',
     WAIST_UP_NOTE,
   );
 };
@@ -167,10 +157,8 @@ export const buildPolicePrompt = ({ gender, age }: JobPromptCtx): string => {
     'official Korean police cap with gold badge on head — key head-level identifier',
     'large silver national police badge on chest',
     insignia,
-    'standing upright with authority, harsh fluorescent lighting, Korean police station background',
+    'standing upright with authority, harsh fluorescent lighting, blurred Korean police station office with official flags and desks behind',
     'authoritative commanding protective expression',
-    'professional modern background suitable for this occupation, soft cinematic lighting',
-    'professional modern background suitable for this occupation, soft cinematic lighting',
     WAIST_UP_NOTE,
   );
 };
@@ -186,10 +174,8 @@ export const buildProGamerPrompt = ({ gender, age }: JobPromptCtx): string => {
     'high-end gaming headset on head with mic boom toward mouth — key head-level identifier',
     seniority(age) === 'senior' && 'veteran pro player calm confidence',
     'seated at competition desk leaning forward, cool RGB blue-purple gaming light on face',
-    'glowing monitors blurred behind',
+    'glowing monitors blurred behind, blurred professional esports tournament stage with glowing RGB screens and neon lights behind',
     'intense focused champion expression',
-    'professional modern background suitable for this occupation, soft cinematic lighting',
-    'professional modern background suitable for this occupation, soft cinematic lighting',
     WAIST_UP_NOTE,
   );
 };
@@ -222,10 +208,8 @@ export const buildScientistPrompt = ({ gender, age }: JobPromptCtx): string => {
     'safety goggles pushed up on forehead above eyebrows NOT covering eyes — NOT eyeglasses',
     LAB_TEST_TUBE,
     seniority(age) === 'senior' && 'senior principal researcher experienced demeanor',
-    'cool blue-white fluorescent lab lighting on face, research equipment blurred behind',
+    'cool blue-white fluorescent lab lighting on face, blurred high-tech science laboratory with glass equipment and bright cool lighting behind',
     'intellectually focused analytical expression',
-    'professional modern background suitable for this occupation, soft cinematic lighting',
-    'professional modern background suitable for this occupation, soft cinematic lighting',
     WAIST_UP_NOTE,
   );
 };
@@ -240,10 +224,8 @@ export const buildFirefighterPrompt = ({ gender, age }: JobPromptCtx): string =>
     gear,
     'silver reflective safety stripes across chest and shoulders',
     seniority(age) === 'senior' && 'veteran fire captain rank patch on sleeve',
-    'dramatic red-orange emergency lighting on face, red Korean fire engine blurred behind',
+    'dramatic red-orange emergency lighting on face, blurred emergency scene with red Korean fire engine and dramatic orange lighting behind',
     'brave heroic determined expression, hair visible no helmet',
-    'professional modern background suitable for this occupation, soft cinematic lighting',
-    'professional modern background suitable for this occupation, soft cinematic lighting',
     WAIST_UP_NOTE,
   );
 };
@@ -266,10 +248,8 @@ export const buildNursePrompt = ({ gender, age }: JobPromptCtx): string => {
     uniform,
     STETHOSCOPE,
     'holding medication chart or clipboard at chest level in one hand',
-    'bright clean hospital lighting, Korean hospital corridor behind',
+    'bright clean hospital lighting, blurred clean modern Korean hospital ward and nursing station behind',
     'compassionate caring warm professional expression',
-    'professional modern background suitable for this occupation, soft cinematic lighting',
-    'professional modern background suitable for this occupation, soft cinematic lighting',
     WAIST_UP_NOTE,
   );
 };
@@ -285,10 +265,8 @@ export const buildJudgePrompt = ({ gender, age }: JobPromptCtx): string => {
     seniority(age) === 'senior' && 'chief justice senior rank dignified presence',
     JUDGE_GAVEL,
     'other hand resting on wooden judicial bench, seated behind elevated bench',
-    'Korean courtroom emblem softly blurred behind',
+    'blurred solemn Korean courtroom interior with wooden panels and official emblem behind',
     'formal solemn courtroom lighting, authoritative wise composed expression',
-    'professional modern background suitable for this occupation, soft cinematic lighting',
-    'professional modern background suitable for this occupation, soft cinematic lighting',
     WAIST_UP_NOTE,
   );
 };
@@ -311,10 +289,8 @@ export const buildLawyerPrompt = ({ gender, age }: JobPromptCtx): string => {
     suit,
     seniority(age) === 'senior' && 'senior partner attorney prestigious presence',
     LEGAL_DOCS,
-    'confident commanding posture, warm prestigious office lighting, legal bookshelves behind',
+    'confident commanding posture, warm prestigious office lighting, blurred prestigious law firm office with dark wood bookshelves and legal books behind',
     'confident sharp professional expression',
-    'professional modern background suitable for this occupation, soft cinematic lighting',
-    'professional modern background suitable for this occupation, soft cinematic lighting',
     WAIST_UP_NOTE,
   );
 };
@@ -330,10 +306,8 @@ export const buildVetPrompt = ({ gender, age }: JobPromptCtx): string => {
     STETHOSCOPE,
     PUPPY_CRADLE,
     seniority(age) === 'senior' && 'senior veterinarian experienced gentle authority',
-    'warm gentle clinic lighting, modern Korean veterinary clinic behind',
+    'warm gentle clinic lighting, blurred clean modern Korean veterinary clinic interior with medical tools behind',
     'warm compassionate loving professional smile',
-    'professional modern background suitable for this occupation, soft cinematic lighting',
-    'professional modern background suitable for this occupation, soft cinematic lighting',
     WAIST_UP_NOTE,
   );
 };
@@ -356,10 +330,8 @@ export const buildPilotPrompt = ({ gender, age }: JobPromptCtx): string => {
     'captain hat with gold wings badge on head — key head-level identifier',
     stripes,
     'pilot wings badge on chest',
-    'clean airline lighting, jet bridge or cockpit blurred behind',
+    'clean airline lighting, blurred airport terminal window showing airplanes or high-tech aircraft cockpit behind',
     'authoritative calm confident professional pilot expression',
-    'professional modern background suitable for this occupation, soft cinematic lighting',
-    'professional modern background suitable for this occupation, soft cinematic lighting',
     WAIST_UP_NOTE,
   );
 };
@@ -375,10 +347,8 @@ export const buildFlightAttendantPrompt = ({ gender, age }: JobPromptCtx): strin
       ),
       'signature wing-shaped silk scarf tied at neck — key neck-level identifier',
       'golden airline wing pin and crew name badge on chest',
-      'standing in airplane cabin aisle, overhead bins blurred behind',
+      'standing in airplane cabin aisle, blurred modern airplane cabin aisle with overhead bins and passenger seats behind',
       'warm soft cabin lighting, poised elegant welcoming smile',
-      'professional modern background suitable for this occupation, soft cinematic lighting',
-    'professional modern background suitable for this occupation, soft cinematic lighting',
     WAIST_UP_NOTE,
     );
   }
@@ -391,10 +361,8 @@ export const buildFlightAttendantPrompt = ({ gender, age }: JobPromptCtx): strin
     ),
     'golden airline wing pin on chest lapel — key chest-level identifier',
     'crew name badge on chest, neat masculine airline-regulation grooming',
-    'standing in airplane cabin aisle, warm cabin lighting',
+    'standing in airplane cabin aisle, blurred modern airplane cabin aisle with warm cabin lighting and passenger seats behind',
     'professional warm welcoming expression',
-    'professional modern background suitable for this occupation, soft cinematic lighting',
-    'professional modern background suitable for this occupation, soft cinematic lighting',
     WAIST_UP_NOTE,
   );
 };
@@ -417,10 +385,8 @@ export const buildDesignerPrompt = ({ gender, age }: JobPromptCtx): string => {
     outfit,
     TABLET_STYLUS,
     'colorful design work on tablet screen visible',
-    'warm moody creative studio lighting, monitor with designs blurred behind',
+    'warm moody creative studio lighting, blurred modern creative design studio with color palettes and monitors behind',
     'creative inspired confident expression',
-    'professional modern background suitable for this occupation, soft cinematic lighting',
-    'professional modern background suitable for this occupation, soft cinematic lighting',
     WAIST_UP_NOTE,
   );
 };
@@ -447,10 +413,8 @@ export const buildWriterPrompt = ({ gender, age }: JobPromptCtx): string => {
   return joinParts(
     outfit,
     prop,
-    'warm amber desk lamp glow on face, tall bookshelves with literature behind',
+    'warm amber desk lamp glow on face, blurred cozy author\'s study room with tall bookshelves filled with literature behind',
     'thoughtful wise creative expression',
-    'professional modern background suitable for this occupation, soft cinematic lighting',
-    'professional modern background suitable for this occupation, soft cinematic lighting',
     WAIST_UP_NOTE,
   );
 };
