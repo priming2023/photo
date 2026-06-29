@@ -42,7 +42,7 @@ export const buildPulidPrompt = (
     childGrowth ? `${childGrowth}.` : '',
     `${age}-year-old Korean ${genderEng}. ${ageDesc}. ${genderStyle}.`,
     `${jobDetail}.`,
-    `Waist-up three-quarter shot at consistent natural distance for all occupations, same head-to-frame ratio, full upper body with arms and hands at sides fully visible not cropped at frame edges, occupational props clearly shown, not close-up not extreme close-up, candid natural photograph, soft daylight, subtle real skin texture, documentary portrait style.`,
+    `Waist-up three-quarter shot at consistent natural distance for all occupations, same head-to-frame ratio, full upper body with arms and hands at sides fully visible not cropped at frame edges, occupational props clearly shown, not close-up not extreme close-up, candid natural photograph, soft daylight, subtle real skin texture, documentary portrait style, blurred professional background matching occupation.`,
   ];
 
   return parts.filter(Boolean).join(' ');

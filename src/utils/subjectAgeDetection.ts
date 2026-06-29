@@ -102,16 +102,21 @@ export const detectSubjectAge = async (imageSrc: string): Promise<SubjectAgeCate
 export const getEffectiveAgeStr = (
   selectedAgeStr: string,
   subjectAge: SubjectAgeCategory,
+  gender: string = '남자',
 ): string => {
   if (subjectAge !== 'child') return selectedAgeStr;
 
   const selected = parseAgeNumber(selectedAgeStr);
   
   let offset = 0;
-  if (selected === 25) offset = 10;      // 25 -> 35
-  else if (selected === 35) offset = 10; // 35 -> 45
-  else if (selected === 45) offset = 5;  // 45 -> 50
-  else if (selected >= 55) offset = 0;   // 55, 65 -> 그대로
+  if (selected === 25) {
+    // 25세 선택 시 남자는 35세급으로 올려 어른스럽게, 여자는 30세 정도로 살짝만
+    offset = gender === '남자' ? 10 : 5;
+  } else if (selected === 35) {
+    offset = 10;
+  } else if (selected === 45) {
+    offset = 5;
+  }
 
   const adjusted = Math.min(selected + offset, MAX_RENDER_AGE);
   return `${adjusted}살`;

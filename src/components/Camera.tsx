@@ -90,14 +90,14 @@ const Camera: React.FC<CameraProps> = ({ onCapture }) => {
 
   return (
     <div className="flex flex-col items-center justify-center w-full min-h-screen lg:h-full px-4 py-20 lg:p-8 lg:pt-16 animate-fade-in">
-      <div className="relative w-full max-w-[1200px] rounded-2xl lg:rounded-[3rem] overflow-hidden border-8 lg:border-[16px] border-white shadow-[0_20px_50px_rgba(0,0,0,0.1)] bg-gray-100 aspect-[4/5] sm:aspect-[16/10]">
+      <div className="relative w-full max-w-[1200px] rounded-2xl lg:rounded-[3rem] overflow-hidden border-8 lg:border-[16px] border-white shadow-[0_20px_50px_rgba(0,0,0,0.1)] bg-gray-100 aspect-[3/4] sm:aspect-[3/4] lg:h-[80vh] lg:w-auto mx-auto flex items-center justify-center">
 
         <video
           ref={videoRef}
           autoPlay
           playsInline
           muted
-          className="w-full h-full object-contain transform -scale-x-100 bg-gray-900"
+          className="w-full h-full object-cover transform -scale-x-100 bg-gray-900"
         />
 
         {isCameraReady && countdown === null && !cameraError && (

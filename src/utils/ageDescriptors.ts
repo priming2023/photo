@@ -19,7 +19,7 @@ const FEMALE_AGE_DESCRIPTORS: Record<number, string> = {
 
 const MALE_AGE_DESCRIPTORS: Record<number, string> = {
   25: 'looks exactly 25 years old, young adult Korean man, smooth clear skin, no deep lines, completely clean-shaven, energetic fresh appearance, youthful',
-  35: 'looks exactly 35 years old, Korean man in his mid-thirties, healthy clear adult skin, no deep wrinkles, clean-shaven, confident young professional, energetic', // 남성은 너무 늙어보이지 않게 (stubble이나 laugh lines 배제)
+  35: 'looks exactly 35 years old, Korean man in his mid-thirties, healthy clear adult skin, very faint smile lines, well-defined jawline, clean-shaven, confident young professional', // 너무 어리지 않도록 youthful 제거, faint smile lines 추가
   45: 'looks exactly 45 years old, middle-aged Korean man in his mid-forties, subtle crow\'s feet, natural nasolabial folds, masculine mature face, experienced look',
   55: 'looks exactly 55 years old, older middle-aged Korean man, visible natural wrinkles on forehead and around mouth, graying hair at temples, weathered skin',
   65: 'looks exactly 65 years old, elderly Korean man, deep natural wrinkles, realistic aged skin texture, mostly silver or gray hair, distinguished senior'
@@ -113,9 +113,10 @@ export const buildNegativePrompt = (
     if (age >= 35) tooYoung = 'looks 20s, college student, teenage, baby face, chubby cheeks, overly youthful';
     if (age >= 45) tooYoung += ', looks 30s, flawless skin, no wrinkles';
   } else {
-    // 남자는 너무 늙어보이는 경향 방어
-    if (age <= 35) tooOld = 'looks 40s, middle-aged, wrinkles, aged skin, heavy stubble, old man, tired look';
-    if (age <= 45) tooOld += ', looks 50s, deep wrinkles, gray hair';
+    // 남자는 너무 늙어보이는 경향 방어 완화 (제 나이 찾기)
+    if (age <= 25) tooOld = 'looks 30s, looks 40s, middle-aged, wrinkles, aged skin, heavy stubble, old man';
+    else if (age <= 35) tooOld = 'looks 50s, deep wrinkles, old man, tired look'; // 35세 남자는 40대 부정 프롬프트 제거하여 자연스러운 성숙함 허용
+    else if (age <= 45) tooOld = 'looks 60s, deep wrinkles, completely white hair';
   }
 
   let result = NEGATIVE_BASE;
@@ -160,8 +161,8 @@ export const getGenderAgeStyle = (gender: string, age: number): string => {
 
   switch (snapped) {
     case 25: return 'neat dark hair, completely clean-shaven, youthful skin';
-    case 35: return 'neat dark hair, completely clean-shaven, fresh healthy face, youthful'; // 수염(stubble) 제거
-    case 45: return 'mostly dark hair, gray strands at temples, mature look, clean-shaven'; // 인공적 노화 방지 위해 수염 제거
+    case 35: return 'neat dark hair, completely clean-shaven, mature professional look'; // youthful 제거
+    case 45: return 'mostly dark hair, gray strands at temples, mature look, clean-shaven'; 
     case 55: return 'salt-and-pepper hair, gray temples, visible forehead lines, mature masculine';
     case 65: return 'mostly gray or silver hair, gray beard stubble optional, weathered mature face, distinguished elder';
     default: return 'neat groomed hair';

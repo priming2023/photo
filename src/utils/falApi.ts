@@ -75,7 +75,7 @@ export const generateTransformedImage = async (
     `피사체: ${subjectAge === 'child' ? '👶어린이' : '🧑성인'}`,
   );
 
-  const renderAgeStr = getEffectiveAgeStr(ageStr, subjectAge);
+  const renderAgeStr = getEffectiveAgeStr(ageStr, subjectAge, gender);
   if (subjectAge === 'child' && renderAgeStr !== ageStr) {
     console.log(
       `[Fal] 어린이 보정: 선택 ${ageStr} → AI ${renderAgeStr}`,
