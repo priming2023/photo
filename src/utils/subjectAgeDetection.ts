@@ -110,12 +110,13 @@ export const getEffectiveAgeStr = (
   
   let offset = 0;
   if (selected === 25) {
-    // 25세 선택 시 남자는 35세급으로 올려 어른스럽게, 여자는 30세 정도로 살짝만
-    offset = gender === '남자' ? 10 : 5;
+    // 25세 선택 시 남자는 완전히 35~40세급(offset +12~15)으로 올려서 성인 티를 확 내고, 여자는 30세 정도로 살짝만
+    offset = gender === '남자' ? 15 : 5;
   } else if (selected === 35) {
-    offset = 10;
+    // 35세 선택 시 남자는 45세 이상으로 올려 확실한 아저씨 티를 내고, 여자는 45세 급으로
+    offset = gender === '남자' ? 15 : 10;
   } else if (selected === 45) {
-    offset = 5;
+    offset = gender === '남자' ? 10 : 5;
   }
 
   const adjusted = Math.min(selected + offset, MAX_RENDER_AGE);
