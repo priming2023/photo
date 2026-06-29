@@ -16,11 +16,11 @@ export interface FrameFitRect {
   drawH: number;
 }
 
-/** 영수증 — AI 미래 사진 (살짝 줌아웃 + 얼굴 아래로) */
-export const FUTURE_PHOTO_COVER: CoverYBiasOptions = { yBias: 0.12, widthScale: 0.81 }; // 줌아웃 추가
+/** 영수증 — AI 미래 사진 (가로형 사진이므로 위아래 거의 안 잘림, 기본값 복원) */
+export const FUTURE_PHOTO_COVER: CoverYBiasOptions = { yBias: 0.0, widthScale: 1.0 }; // 가로 꽉 채움
 
-/** 영수증 — 웹캠 현재 사진 (미래보다 더 넓게) */
-export const CURRENT_PHOTO_COVER: CoverYBiasOptions = { yBias: 0.08, widthScale: 0.77 }; // 줌아웃 추가
+/** 영수증 — 웹캠 현재 사진 */
+export const CURRENT_PHOTO_COVER: CoverYBiasOptions = { yBias: 0.0, widthScale: 1.0 }; // 가로 꽉 채움
 
 /**
  * cover + yBias + widthScale — aafc26b 검증 방식

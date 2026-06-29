@@ -146,7 +146,7 @@ export const generateTransformedImage = async (
       body: JSON.stringify({
         prompt,
         reference_image_url: cdnUrl,
-        image_size: 'portrait_4_3',
+        image_size: 'landscape_4_3',
         num_inference_steps: 26,
         guidance_scale,
         id_weight,
