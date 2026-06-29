@@ -10,6 +10,7 @@ import { JOB_NEGATIVES } from './occupationPrompts';
 import {
   detectSubjectAge,
   getChildAgeWeightAdjust,
+  getChildStartStepAdjust,
   getEffectiveAgeStr,
 } from './subjectAgeDetection';
 
@@ -84,23 +85,35 @@ export const generateTransformedImage = async (
 
   const prompt         = buildPulidPrompt(job, renderAgeStr, gender, eyewear, subjectAge);
   const jobNegative    = JOB_NEGATIVES[job] ?? '';
+  
+  let childNegative = '';
+  if (subjectAge === 'child') {
+    childNegative = 'child, kid, baby face, chubby cheeks, toddler, adolescent, youthful, young boy, young girl, round baby face, children clothes';
+  }
+
   const negativePrompt = buildNegativePrompt(
     renderAgeStr,
     gender,
-    [getEyewearNegative(eyewear), jobNegative].filter(Boolean).join(', '),
+    [getEyewearNegative(eyewear), jobNegative, childNegative].filter(Boolean).join(', '),
   );
 
   let { id_weight, start_step, guidance_scale } = getPulidParams(renderAgeStr, gender);
 
   const eyewearAdjust = getEyewearPulidAdjust(eyewear);
-  id_weight = Math.min(Math.max(id_weight + eyewearAdjust.idWeightDelta, 0.82), 0.95);
+  id_weight = Math.min(Math.max(id_weight + eyewearAdjust.idWeightDelta, 0.60), 0.95);
   start_step = eyewearAdjust.startStep;
   console.log(`[Fal] 안경 PuLID: id=${id_weight}, step=${start_step}`);
 
   if (subjectAge === 'child') {
-    const adjust = getChildAgeWeightAdjust(renderAgeStr);
-    id_weight = Math.max(id_weight + adjust, 0.85);
-    console.log(`[Fal] 어린이 보정: id_weight → ${id_weight.toFixed(2)}`);
+    const adjustWeight = getChildAgeWeightAdjust(renderAgeStr);
+    const adjustStep = getChildStartStepAdjust(renderAgeStr);
+    
+    // 어린이의 얼굴 골격을 어른으로 바꾸려면 id_weight가 충분히 낮아야 함 (0.85 하한선 제거)
+    id_weight = Math.max(id_weight + adjustWeight, 0.60);
+    // 어른 얼굴 형태를 먼저 잡고 아이 얼굴을 입히도록 start_step 지연 (최대 5)
+    start_step = Math.min(start_step + adjustStep, 5);
+    
+    console.log(`[Fal] 어린이 보정 적용: id_weight → ${id_weight.toFixed(2)}, start_step → ${start_step}`);
   }
 
   console.log('[Fal] 프롬프트 앞부분:', prompt.slice(0, 140));

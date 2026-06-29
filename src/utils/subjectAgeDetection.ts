@@ -116,13 +116,21 @@ export const getEffectiveAgeStr = (
   return `${adjusted}살`;
 };
 
-/** 어린이 감지 시 PuLID id_weight 보정 (더 강하게 적용) */
+/** 어린이 감지 시 PuLID id_weight 보정 (얼굴 골격을 바꾸기 위해 대폭 낮춤) */
 export const getChildAgeWeightAdjust = (targetAgeStr: string): number => {
   const age = parseAgeNumber(targetAgeStr);
-  if (age <= 40) return -0.08;
-  if (age <= 50) return -0.05;
-  if (age <= 60) return -0.02;
-  return 0;
+  if (age <= 40) return -0.22; // 강한 골격 변화 허용
+  if (age <= 50) return -0.15;
+  if (age <= 60) return -0.08;
+  return -0.05;
+};
+
+/** 어린이 감지 시 PuLID start_step 지연 (어른 형태를 먼저 잡고 나중에 얼굴 합성) */
+export const getChildStartStepAdjust = (targetAgeStr: string): number => {
+  const age = parseAgeNumber(targetAgeStr);
+  if (age <= 40) return 3;
+  if (age <= 50) return 2;
+  return 1;
 };
 
 /** 어린이 감지 시 성장 변환 문구 (targetAgeStr = effectiveAge, 이미 offset 반영) */
@@ -131,21 +139,21 @@ export const getChildGrowthPrompt = (targetAgeStr: string): string => {
 
   if (age <= 40) {
     return (
-      'Transform this child into a fully grown Korean adult. ' +
-      'Mature adult bone structure and facial proportions, ' +
-      'completely grown up face — NOT a child face, NOT baby features. ' +
-      'Adult jaw, adult nose bridge, adult eye socket depth.'
+      'Transform this child into a fully grown adult Korean. ' +
+      'Complete loss of baby fat, sharp adult jawline, elongated adult face shape, ' +
+      'mature adult bone structure and facial proportions — NOT a child face, NOT baby features. ' +
+      'Prominent adult cheekbones, adult eye socket depth, full adult maturity.'
     );
   }
   if (age <= 50) {
     return (
       'Transform childhood features into mature adult appearance. ' +
-      'Fully developed adult Korean face, adult bone structure, ' +
-      'grown-up facial proportions — no childlike features.'
+      'Fully developed adult Korean face, sharp adult jawline, loss of baby fat, ' +
+      'adult bone structure, grown-up facial proportions — no childlike features.'
     );
   }
   return (
     'Transform from child to significantly older adult. ' +
-    'Fully grown adult Korean face with age-appropriate features.'
+    'Fully grown adult Korean face with age-appropriate features, adult jawline.'
   );
 };
