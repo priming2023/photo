@@ -38,7 +38,7 @@ export const buildPulidPrompt = (
 
   const parts = [
     eyewearDesc ? `${eyewearDesc}.` : '',
-    `Same person as reference photo, preserve identical face shape eyes nose lips jawline skin texture.`,
+    subjectAge !== 'child' ? `Same person as reference photo, preserve identical face shape eyes nose lips jawline skin texture.` : '',
     `single person only, one face only, solo portrait, no duplicate faces, no split image.`,
     childGrowth ? `${childGrowth}.` : '',
     `${age}-year-old Korean ${genderEng}. ${ageDesc}. ${genderStyle}.`,

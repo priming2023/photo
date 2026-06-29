@@ -108,12 +108,13 @@ export const generateTransformedImage = async (
     const adjustWeight = getChildAgeWeightAdjust(renderAgeStr);
     const adjustStep = getChildStartStepAdjust(renderAgeStr);
     
-    // 어린이의 얼굴 골격을 어른으로 바꾸려면 id_weight가 충분히 낮아야 함 (0.85 하한선 제거)
-    id_weight = Math.max(id_weight + adjustWeight, 0.60);
-    // 어른 얼굴 형태를 먼저 잡고 아이 얼굴을 입히도록 start_step 지연 (최대 5)
-    start_step = Math.min(start_step + adjustStep, 5);
+    // 어린이의 얼굴 골격을 어른으로 바꾸려면 id_weight가 충분히 낮아야 함
+    id_weight = Math.max(id_weight + adjustWeight, 0.45); // 하한선을 0.45까지 대폭 낮춤
+    // 어른 얼굴 형태를 먼저 잡고 아이 얼굴을 입히도록 start_step 지연
+    start_step = Math.min(start_step + adjustStep, 8); // 최대 8스텝까지 지연
+    guidance_scale = 5.0; // 텍스트 프롬프트(어른 묘사)의 반영도를 높임
     
-    console.log(`[Fal] 어린이 보정 적용: id_weight → ${id_weight.toFixed(2)}, start_step → ${start_step}`);
+    console.log(`[Fal] 어린이 보정 적용: id_weight → ${id_weight.toFixed(2)}, start_step → ${start_step}, guidance → ${guidance_scale}`);
   }
 
   console.log('[Fal] 프롬프트 앞부분:', prompt.slice(0, 140));
