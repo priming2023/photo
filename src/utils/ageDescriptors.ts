@@ -11,47 +11,47 @@
 // ─── 나이별 시각 묘사 (성별 공통 베이스) ────────────────────────────────────
 export const AGE_DESCRIPTORS: Record<number, string> = {
   25: [
-    'looks 25 years old, young adult',
-    'smooth clear adult skin, sharp adult jawline, bright eyes',
-    'dark hair, no gray, energetic professional appearance',
+    'looks exactly 25 years old, young adult in their mid-twenties',
+    'smooth firm skin, sharp clean jawline, vibrant bright eyes, flawless complexion without deep lines',
+    'dark hair, energetic and fresh appearance',
   ].join(', '),
 
   35: [
-    'looks 35 years old, mature adult',
-    'healthy adult skin, well-defined jawline, faint smile lines',
-    'dark hair, confident mature professional',
+    'looks exactly 35 years old, mature adult in their mid-thirties',
+    'healthy skin with very subtle laugh lines, well-defined facial structure, complete loss of teenage baby fat',
+    'dark hair, confident and settled professional appearance',
   ].join(', '),
 
   45: [
-    'looks 45 years old, clearly middle-aged adult NOT in 20s or 30s',
-    'visible crow\'s feet, natural nasolabial folds, loss of facial fat',
-    'some gray hair at temples, mature aging skin texture',
+    'looks exactly 45 years old, middle-aged adult in their mid-forties',
+    'visible fine lines around eyes, natural nasolabial folds, slight loss of skin elasticity',
+    'some gray hairs starting to show, mature and experienced look',
   ].join(', '),
 
   55: [
-    'looks 55 years old, older middle-aged adult',
-    'prominent natural wrinkles around eyes and mouth, visible skin aging',
-    'salt-and-pepper hair, realistic mature skin texture, no baby fat',
+    'looks exactly 55 years old, older middle-aged adult in their mid-fifties',
+    'prominent crow\'s feet and smile lines, visible skin texture changes, mild skin sagging around jaw',
+    'noticeable salt-and-pepper hair, realistic aging skin, dignified appearance',
   ].join(', '),
 
   65: [
-    'looks 65 years old, dignified elderly senior',
-    'natural deep wrinkles, realistic aged skin texture, graceful aging',
-    'mostly gray or silver hair, mild skin sagging, wise calm expression',
+    'looks exactly 65 years old, elderly senior citizen in their mid-sixties',
+    'deep natural wrinkles, pronounced nasolabial folds, realistic aged skin texture with age spots',
+    'mostly silver or gray hair, loose skin around neck and jaw, wise and calm expression',
   ].join(', '),
 };
 
 // ─── 성별별 추가 노화 강조 (프롬프트로 나이 표현 — id_weight는 닮음 유지) ─────
 const FEMALE_AGE_BOOST: Record<number, string> = {
-  45: 'woman in her mid-forties with mature skin',
-  55: 'Korean woman in her fifties with salt-and-pepper hair, visible natural wrinkles, looks about 55',
-  65: 'Korean woman in her sixties with gray hair, deep facial lines, gracefully aged skin, looks about 65',
+  45: 'Korean woman in her mid-forties, elegant mature face, realistic skin texture',
+  55: 'Korean woman in her mid-fifties, graying hair, visible natural wrinkles on forehead and around mouth, looks about 55',
+  65: 'Korean woman in her mid-sixties, silver hair, deep facial lines, gracefully aged and wrinkled skin, looks about 65',
 };
 
 const MALE_AGE_BOOST: Record<number, string> = {
-  45: 'man in his mid-forties, mature skin',
-  55: 'Korean man in his fifties with gray temples, natural lines, mature skin, looks about 55',
-  65: 'Korean man in his sixties with gray hair, deep wrinkles, dignified look, looks about 65',
+  45: 'Korean man in his mid-forties, masculine mature face, realistic skin texture',
+  55: 'Korean man in his mid-fifties, graying hair at temples, natural forehead lines, weathered skin, looks about 55',
+  65: 'Korean man in his mid-sixties, silver hair, deep wrinkles and age lines, distinguished elderly look, looks about 65',
 };
 
 export interface PulidParams {

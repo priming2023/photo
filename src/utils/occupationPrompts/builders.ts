@@ -71,22 +71,21 @@ export const buildDoctorPrompt = ({ gender, age }: JobPromptCtx): string => {
 export const buildYoutuberPrompt = ({ gender, age }: JobPromptCtx): string => {
   const outfit = isFemale(gender)
     ? rankStyle(age,
-        'wearing trendy feminine Korean creator outfit pastel hoodie or stylish blouse',
-        'wearing polished female content creator smart casual on camera',
-        'wearing mature female creator professional studio outfit',
+        'wearing trendy stylish casual outfit, bright cheerful colors, modern Korean female creator style',
+        'wearing polished chic smart casual blouse, professional female YouTuber look',
+        'wearing elegant mature professional studio outfit, high-quality fabric, sophisticated female creator',
       )
     : rankStyle(age,
-        'wearing trendy masculine Korean streetwear hoodie or casual creator shirt',
-        'wearing polished male YouTuber smart casual shirt',
-        'wearing mature male creator professional studio outfit',
+        'wearing trendy casual streetwear or stylish oversized shirt, modern Korean male creator style',
+        'wearing neat polished smart casual shirt, professional male YouTuber look',
+        'wearing refined mature professional studio blazer or high-quality shirt, sophisticated male creator',
       );
 
   return joinParts(
     outfit,
-    'LED ring light reflection visible in both eyes',
-    'professional condenser microphone on desk at chest level — normal desk mic size NOT giant',
-    'soft warm ring light on face, blurred creative studio with monitors behind',
-    'energetic charismatic engaging creator expression gesturing toward camera',
+    'wearing small wireless lavalier mic clipped to shirt collar',
+    'bright and soft studio lighting, blurred modern room with tasteful decor and warm ambient lights in background',
+    'warm friendly confident smile, looking directly at camera, natural engaging expression',
     WAIST_UP_NOTE,
   );
 };
