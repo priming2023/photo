@@ -119,13 +119,13 @@ export const getEffectiveAgeStr = (
 
   let offset = 0;
   if (selected === 30) {
-    offset = 15; // 구 35세 남자 타겟: 30+15=45 (과거 35세의 타겟 45와 동일하게 맞춤)
+    offset = 4; // 34살 (30대 버킷 유지)
   } else if (selected === 40) {
-    offset = 10; // 구 45세 타겟: 40+10=50 (과거 45세의 타겟 50과 동일)
+    offset = 4; // 44살 (40대 버킷 유지)
   } else if (selected === 50) {
-    offset = 5;  // 구 55세 타겟: 50+5=55 (과거 55세의 타겟 55와 동일)
+    offset = 4; // 54살 (50대 버킷 유지)
   } else if (selected === 60) {
-    offset = 5;  // 구 65세 타겟: 60+5=65 (과거 65세의 타겟 65와 동일)
+    offset = 4; // 64살 (60대 버킷 유지)
   }
 
   const adjusted = Math.min(selected + offset, MAX_RENDER_AGE);
@@ -140,14 +140,13 @@ export const getEffectiveAgeStr = (
 export const getChildAgeWeightAdjust = (targetAgeStr: string, gender: string = '남자'): number => {
   const age = parseAgeNumber(targetAgeStr);
   if (gender === '여자') {
-    // 여자: 세션 전 만족했던 원래 수치 그대로 유지되도록 타겟 구간 조정
-    if (age <= 30) return -0.40;
-    if (age <= 50) return -0.35; // 구 35(타겟45), 구 45(타겟50) 모두 -0.35 였음
-    if (age <= 60) return -0.30; // 구 55(타겟55) -0.30 였음
-    return -0.25;                // 구 65(타겟65) -0.25 였음
+    if (age <= 35) return -0.40;
+    if (age <= 50) return -0.35; 
+    if (age <= 60) return -0.30; 
+    return -0.25;                
   }
   // 남자 
-  if (age <= 30) return -0.40; // 구 35세 남자 타겟과 동일
+  if (age <= 35) return -0.40; 
   if (age <= 50) return -0.35; 
   if (age <= 60) return -0.30; 
   return -0.25;                
@@ -157,13 +156,12 @@ export const getChildAgeWeightAdjust = (targetAgeStr: string, gender: string = '
 export const getChildStartStepAdjust = (targetAgeStr: string, gender: string = '남자'): number => {
   const age = parseAgeNumber(targetAgeStr);
   if (gender === '여자') {
-    // 여자: 세션 전 만족했던 원래 수치 그대로 유지
-    if (age <= 30) return 6;
+    if (age <= 35) return 6;
     if (age <= 50) return 5;
     return 4;
   }
   // 남자 
-  if (age <= 30) return 6; // 구 35세 타겟과 동일하게 돌림 (어린이 감지 시 강력 변형)
+  if (age <= 35) return 6; 
   if (age <= 50) return 5; 
   return 4;
 };
@@ -172,7 +170,7 @@ export const getChildStartStepAdjust = (targetAgeStr: string, gender: string = '
 export const getChildGrowthPrompt = (targetAgeStr: string, gender: string = '남자'): string => {
   const age = parseAgeNumber(targetAgeStr);
 
-  if (age <= 30) {
+  if (age <= 35) {
     if (gender === '여자') {
       return (
         'Completely transform this child into a fully mature adult Korean. ' +

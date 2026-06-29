@@ -94,7 +94,7 @@ const Selection: React.FC<SelectionProps> = ({ onComplete }) => {
               <span className="w-7 h-7 lg:w-8 lg:h-8 rounded-full bg-blue-100 text-blue-500 flex items-center justify-center text-xs lg:text-sm shrink-0">3</span>
               몇 살 때 모습일까요?
             </h3>
-            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 lg:gap-3 lg:flex-1">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 lg:gap-3 lg:flex-1">
               {AGES.map((age) => (
                 <button
                   key={age}

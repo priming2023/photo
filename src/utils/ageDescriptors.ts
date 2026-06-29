@@ -17,10 +17,10 @@ const FEMALE_AGE_DESCRIPTORS: Record<number, string> = {
 };
 
 const MALE_AGE_DESCRIPTORS: Record<number, string> = {
-  30: 'looks exactly 35 years old, Korean man in his mid-thirties, healthy clear adult skin, very faint smile lines, well-defined jawline, clean-shaven, confident young professional', // 구 35세 남자
-  40: 'looks exactly 45 years old, middle-aged Korean man in his early forties, subtle crow\'s feet, natural nasolabial folds, masculine mature face, experienced look', // 구 45세 (40대로 텍스트 약간 수정)
-  50: 'looks exactly 55 years old, older middle-aged Korean man, visible natural wrinkles on forehead and around mouth, graying hair at temples, weathered skin', // 구 55세
-  60: 'looks exactly 65 years old, elderly Korean man, deep natural wrinkles, realistic aged skin texture, mostly silver or gray hair, distinguished senior' // 구 65세
+  30: 'looks exactly 35 years old, Korean man in his mid-thirties, healthy clear adult skin, very faint smile lines, well-defined jawline, clean-shaven, confident young professional',
+  40: 'looks exactly 40 years old, Korean man in his early forties, healthy adult skin, subtle signs of maturity, well-defined jawline, clean-shaven, confident professional', // 약간 젊어진 40대 (흰머리/주름 최소화)
+  50: 'looks exactly 45 years old, middle-aged Korean man in his late forties, subtle crow\'s feet, natural nasolabial folds, masculine mature face, experienced look', // 구 45세 설정을 50세로 이동
+  60: 'looks exactly 55 years old, older middle-aged Korean man, visible natural wrinkles on forehead and around mouth, graying hair at temples, weathered skin' // 구 55세 설정을 60세로 이동 (구 65세 삭제)
 };
 
 export interface PulidParams {
@@ -44,10 +44,10 @@ const FEMALE_PARAMS: Record<number, PulidParams> = {
 };
 
 const MALE_PARAMS: Record<number, PulidParams> = {
-  30: { id_weight: 0.92, start_step: 2, guidance_scale: 3.8 }, // 구 35세 남자
-  40: { id_weight: 0.82, start_step: 3, guidance_scale: 4.2 }, // 구 45세
-  50: { id_weight: 0.70, start_step: 4, guidance_scale: 4.6 }, // 구 55세
-  60: { id_weight: 0.58, start_step: 5, guidance_scale: 5.0 }, // 구 65세
+  30: { id_weight: 0.92, start_step: 2, guidance_scale: 3.8 }, 
+  40: { id_weight: 0.88, start_step: 2, guidance_scale: 4.0 }, // 기존 30과 50의 중간값으로 조정 (더 젊게)
+  50: { id_weight: 0.82, start_step: 3, guidance_scale: 4.2 }, // 구 45세 설정을 50세로 이동
+  60: { id_weight: 0.70, start_step: 4, guidance_scale: 4.6 }, // 구 55세 설정을 60세로 이동
 };
 
 export const getPulidParams = (ageStr: string, gender: string): PulidParams => {
@@ -117,13 +117,13 @@ export const buildNegativePrompt = (
   let result = NEGATIVE_BASE;
 
   if (age <= 30) {
-    result += ', heavy wrinkles, gray hair, elderly appearance, child, baby face'; // 구 35세 (너무 늙어보이거나 너무 어려보이는 것 방어)
+    result += ', heavy wrinkles, gray hair, white hair, elderly appearance, child, baby face'; 
   } else if (age <= 40) {
-    result += ', elderly, deep wrinkles, mostly white hair, child, kid'; // 구 45세: 흰머리 방지
+    result += ', elderly, deep wrinkles, gray hair, white hair, child, kid'; // 40대까지 흰머리 완벽 방지
   } else if (age <= 50) {
-    result += ', extremely old 80 years, frail, child, kid'; // 구 55세
+    result += ', extremely old 80 years, frail, child, kid'; 
   } else {
-    result += ', extremely old 90 years, decrepit, child, kid'; // 구 65세
+    result += ', extremely old 90 years, decrepit, child, kid'; 
   }
 
   if (tooYoung) result += ', ' + tooYoung;
@@ -143,8 +143,8 @@ export const getGenderAgeStyle = (gender: string, age: number): string => {
 
   if (gender === '여자') {
     switch (snapped) {
-      case 30: return 'elegant mature hairstyle, sophisticated professional makeup, mature woman look, no earrings';
-      case 40: return 'mature hairstyle, mostly dark hair, elegant light makeup, no earrings';
+      case 30: return 'elegant mature dark hairstyle, sophisticated professional makeup, mature woman look, no earrings';
+      case 40: return 'mature dark hairstyle, elegant light makeup, no earrings';
       case 50: return 'mature hairstyle with prominent gray and silver streaks, visible aging on face, no earrings, no makeup hiding wrinkles';
       case 60: return 'silver-gray elderly hairstyle, mostly gray hair, aged face with wrinkles clearly visible, no earrings';
       default: return 'neat hairstyle, no earrings';
@@ -152,10 +152,10 @@ export const getGenderAgeStyle = (gender: string, age: number): string => {
   }
 
   switch (snapped) {
-    case 30: return 'neat dark hair, completely clean-shaven, mature professional look'; // 구 35세 남자 헤어스타일
-    case 40: return 'neat dark hair, mature look, clean-shaven'; // 구 45세 (흰머리 방지)
-    case 50: return 'salt-and-pepper hair, gray temples, visible forehead lines, mature masculine'; // 구 55세
-    case 60: return 'mostly gray or silver hair, gray beard stubble optional, weathered mature face, distinguished elder'; // 구 65세
+    case 30: return 'neat dark hair, completely clean-shaven, mature professional look';
+    case 40: return 'neat dark hair, mature look, clean-shaven'; 
+    case 50: return 'mostly dark hair, mature look, clean-shaven'; // 구 45세 스타일 (흰머리 방지)
+    case 60: return 'salt-and-pepper hair, gray temples, visible forehead lines, mature masculine'; // 구 55세 스타일 차용
     default: return 'neat groomed hair';
   }
 };
