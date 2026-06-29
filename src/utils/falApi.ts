@@ -4,7 +4,6 @@ import { cropToPortrait } from './imagePreprocess';
 import {
   detectEyewearAuto,
   getEyewearNegative,
-  getEyewearPulidAdjust,
 } from './eyewearDetection';
 import { JOB_NEGATIVES } from './occupationPrompts';
 import {
@@ -99,24 +98,32 @@ export const generateTransformedImage = async (
 
   let { id_weight, start_step, guidance_scale } = getPulidParams(renderAgeStr, gender);
 
-  const eyewearAdjust = getEyewearPulidAdjust(eyewear);
-  id_weight = Math.min(Math.max(id_weight + eyewearAdjust.idWeightDelta, 0.40), 0.95);
-  // 안경 조정 시 기본 start_step을 무조건 덮어쓰지 않고 최댓값 유지 (노화 step 보호)
-  start_step = Math.max(start_step, eyewearAdjust.startStep);
-  console.log(`[Fal] 기본/안경 PuLID: id=${id_weight}, step=${start_step}`);
+  if (eyewear === 'wearing') {
+    id_weight = Math.max(id_weight, 0.85); // 안경 보존을 위해 무조건 높은 가중치 강제
+    start_step = Math.min(start_step, 2);  // 초반부터 프레임 잡도록 강제
+  }
 
   if (subjectAge === 'child') {
     const adjustWeight = getChildAgeWeightAdjust(renderAgeStr);
     const adjustStep = getChildStartStepAdjust(renderAgeStr);
     
-    // 어린이의 얼굴 골격을 어른으로 바꾸려면 id_weight가 충분히 낮아야 함
-    id_weight = Math.max(id_weight + adjustWeight, 0.35); // 극단적 얼굴 변화 허용 (하한선 0.35)
-    // 어른 얼굴 형태를 먼저 잡고 아이 얼굴을 입히도록 start_step 지연
-    start_step = Math.min(start_step + adjustStep, 10); // 최대 10스텝까지 지연
-    guidance_scale = 5.5; // 텍스트 프롬프트(어른 묘사)의 반영도를 극대화
-    
+    if (eyewear === 'wearing') {
+      // 어린이가 안경을 썼을 때: 안경을 지켜야 하므로 id_weight를 너무 낮출 수 없음. 타협점 적용
+      id_weight = Math.max(id_weight - 0.15, 0.65); 
+      start_step = Math.min(start_step + 1, 3);
+    } else {
+      // 안경 안 쓴 어린이: 강력한 뼈대 교체 (기존 로직)
+      id_weight = Math.max(id_weight + adjustWeight, 0.35);
+      start_step = Math.min(start_step + adjustStep, 10);
+    }
+    guidance_scale = 5.0; // 텍스트 강제력
     console.log(`[Fal] 어린이 보정 적용: id_weight → ${id_weight.toFixed(2)}, start_step → ${start_step}, guidance → ${guidance_scale}`);
+  } else if (eyewear === 'not_wearing') {
+    // 어른이 안경 안 썼을 때, 안경 오작동 방지를 위해 시작스텝을 조금 미뤄서 AI가 맨얼굴을 먼저 그리게 함
+    start_step = Math.max(start_step, 4);
   }
+
+  console.log(`[Fal] 최종 파라미터 결정: id=${id_weight.toFixed(2)}, step=${start_step}`);
 
   console.log('[Fal] 프롬프트 앞부분:', prompt.slice(0, 140));
   console.log(

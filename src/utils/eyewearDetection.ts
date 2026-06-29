@@ -75,8 +75,9 @@ export const detectEyewearAuto = async (
 export const getEyewearPrompt = (state: EyewearState): string => {
   if (state === 'wearing') {
     return [
-      'wearing the same eyeglasses as in the reference photo',
-      'identical glasses frame shape color and thickness',
+      'wearing eyeglasses',
+      'person is clearly wearing spectacles',
+      'identical glasses frame shape and color as reference',
       'preserve eyewear exactly do not remove glasses',
     ].join(', ');
   }
@@ -116,7 +117,7 @@ export const getEyewearPulidAdjust = (
   state: EyewearState,
 ): { idWeightDelta: number; startStep: number } => {
   if (state === 'wearing') {
-    return { idWeightDelta: 0.02, startStep: 2 };
+    return { idWeightDelta: 0.15, startStep: 1 }; // 안경 착용: 초반 스텝부터 뼈대 잡고 닮음률 대폭 방어
   }
-  return { idWeightDelta: 0.04, startStep: 2 };
+  return { idWeightDelta: 0, startStep: 2 };
 };

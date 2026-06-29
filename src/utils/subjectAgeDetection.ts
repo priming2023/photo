@@ -93,8 +93,10 @@ export const detectSubjectAge = async (imageSrc: string): Promise<SubjectAgeCate
 /**
  * AI 변환 표현 나이
  * - 성인 판정: 선택 나이 그대로
- * - 어린이 판정: 기본적으로 +15살을 더해 확실히 나이 들게 표현 (25살 선택 → 40살 묘사)
- *   단, 선택 나이가 35세 이상이면 너무 늙어 보이지 않게 보정폭을 줄임 (+10살, +5살)
+ * - 어린이 판정: 
+ *   25세 선택 시 35세(young adult) 급으로 올려 젖살 배제
+ *   35세 선택 시 45세 급으로 올려 성숙함 부여
+ *   45세 이상은 조금씩만 더해 지나치게 늙어보이지 않게 방어
  * - 영수증·UI는 선택 나이 유지
  */
 export const getEffectiveAgeStr = (
@@ -105,12 +107,11 @@ export const getEffectiveAgeStr = (
 
   const selected = parseAgeNumber(selectedAgeStr);
   
-  let offset = 15;
-  if (selected >= 45) {
-    offset = 5;
-  } else if (selected >= 35) {
-    offset = 10;
-  }
+  let offset = 0;
+  if (selected === 25) offset = 10;      // 25 -> 35
+  else if (selected === 35) offset = 10; // 35 -> 45
+  else if (selected === 45) offset = 5;  // 45 -> 50
+  else if (selected >= 55) offset = 0;   // 55, 65 -> 그대로
 
   const adjusted = Math.min(selected + offset, MAX_RENDER_AGE);
   return `${adjusted}살`;
