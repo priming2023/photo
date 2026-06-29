@@ -18,7 +18,7 @@ const FEMALE_AGE_DESCRIPTORS: Record<number, string> = {
 };
 
 const MALE_AGE_DESCRIPTORS: Record<number, string> = {
-  25: 'looks exactly 25 to 29 years old, young adult Korean man, fully grown masculine face, complete loss of baby fat, strong sharp jawline, handsome energetic professional, energetic and youthful but NOT a child',
+  25: 'a man in his late twenties, looks 27 to 29 years old, clearly an adult man NOT a teenager NOT a child, fully developed masculine facial structure, defined adult jawline, mature clear adult skin, confident young professional',
   35: 'looks exactly 35 to 39 years old, mature Korean man, well-defined masculine facial structure, rugged handsome adult, subtle signs of mature age, confident professional',
   45: 'looks exactly 45 to 49 years old, middle-aged Korean man, visible crow\'s feet, prominent nasolabial folds, slight loss of skin elasticity, masculine mature face, experienced look',
   55: 'looks exactly 50 to 54 years old, early fifties Korean man, natural expression lines on forehead, slight graying at temples, mature and dignified',

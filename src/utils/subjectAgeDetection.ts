@@ -119,8 +119,10 @@ export const getEffectiveAgeStr = (
 
   let offset = 0;
   if (selected === 25) {
-    // 25세 남자는 기존에 +15를 주었으나(40세급), 조금 더 청년의 느낌을 살리기 위해 오프셋을 +8로 조정하여 33세급으로 세팅함
-    offset = gender === '남자' ? 8 : 5;
+    // 25세 남자: 표현 나이를 30세급으로만 살짝 올림. (과거 +15/+8 처럼 과하게 올린 뒤
+    // 어린이 보정에서 또 세게 부수면 정체성 붕괴로 5살 아기가 됐음.) 30세는 성인 안전성을
+    // 보장하면서도 청년 느낌을 유지하는 균형점.
+    offset = gender === '남자' ? 5 : 5;
   } else if (selected === 35) {
     // 35세 선택 시 남자는 45세 급으로, 여자는 45세 급으로
     offset = gender === '남자' ? 10 : 10;
@@ -138,11 +140,16 @@ export const getEffectiveAgeStr = (
   return `${adjusted}살`;
 };
 
-/** 어린이 감지 시 PuLID id_weight 보정 (얼굴 골격을 바꾸기 위해 대폭 낮춤) */
+/**
+ * 어린이 감지 시 PuLID id_weight 보정.
+ * 핵심: "젊은 목표일수록 약하게, 늙은 목표일수록 강하게" 변형해야 함.
+ * 25세 선택(표현 33세급)은 아이 얼굴과 가장 가까운 청년이므로 살짝만 다듬어야 한다.
+ * 과거처럼 -0.40 + step+6 으로 과하게 부수면 정체성이 붕괴되어 오히려 5살 아기로 회귀함.
+ */
 export const getChildAgeWeightAdjust = (targetAgeStr: string): number => {
   const age = parseAgeNumber(targetAgeStr);
-  if (age <= 40) return -0.40; // 20~30대 타겟: 얼굴형 완벽 타파
-  if (age <= 50) return -0.35; // 40대 타겟
+  if (age <= 36) return -0.12; // 20대 청년 타겟: 살짝만 골격 정리 → 안정적 성인 청년 유지
+  if (age <= 50) return -0.35; // 40대 타겟: 강하게 변형
   if (age <= 60) return -0.30; // 50대 타겟
   return -0.25;                // 60대 타겟
 };
@@ -150,8 +157,8 @@ export const getChildAgeWeightAdjust = (targetAgeStr: string): number => {
 /** 어린이 감지 시 PuLID start_step 지연 (어른 형태를 먼저 잡고 나중에 얼굴 합성) */
 export const getChildStartStepAdjust = (targetAgeStr: string): number => {
   const age = parseAgeNumber(targetAgeStr);
-  if (age <= 40) return 6; // 매우 늦게 얼굴 합성 (골격 유지력 극대화)
-  if (age <= 50) return 5;
+  if (age <= 36) return 1; // 청년 타겟: 얼굴 합성을 이르게 시작해 정체성 안정(아기 붕괴 방지)
+  if (age <= 50) return 5; // 40대 타겟: 늦게 합성해 골격 유지력 확보
   return 4;
 };
 
@@ -161,10 +168,10 @@ export const getChildGrowthPrompt = (targetAgeStr: string): string => {
 
   if (age <= 40) {
     return (
-      'Completely transform this child into a young adult Korean man. ' +
-      'ABSOLUTELY NO CHILD FEATURES. Complete loss of baby fat, sharp jawline, elongated adult face shape, ' +
-      'handsome youthful adult proportions. ' +
-      'Not middle-aged, just a fresh energetic young professional adult.'
+      'Transform this child into a fully grown ADULT Korean man in his late twenties. ' +
+      'He is an ADULT MAN, absolutely NOT a child, NOT a baby, NOT a toddler, NOT a teenager, NOT a kid. ' +
+      'Complete loss of all baby fat, clearly defined adult jawline, elongated adult face shape, ' +
+      'mature adult bone structure and adult facial proportions of a confident man around 28 years old.'
     );
   }
   if (age <= 50) {
