@@ -119,8 +119,8 @@ export const getEffectiveAgeStr = (
 
   let offset = 0;
   if (selected === 25) {
-    // 25세 선택 시 남자는 확실한 35세급(offset +10)으로 올려서 성인 티를 냄, 여자는 30세 정도로 살짝만
-    offset = gender === '남자' ? 10 : 5;
+    // 25세 남자는 기존에 +15를 주었으나(40세급), 조금 더 청년의 느낌을 살리기 위해 오프셋을 +8로 조정하여 33세급으로 세팅함
+    offset = gender === '남자' ? 8 : 5;
   } else if (selected === 35) {
     // 35세 선택 시 남자는 45세 급으로, 여자는 45세 급으로
     offset = gender === '남자' ? 10 : 10;
@@ -161,10 +161,10 @@ export const getChildGrowthPrompt = (targetAgeStr: string): string => {
 
   if (age <= 40) {
     return (
-      'Completely transform this child into a fully mature adult Korean. ' +
-      'ABSOLUTELY NO CHILD FEATURES. Complete loss of baby fat, sharp adult jawline, elongated adult face shape, ' +
-      'mature adult bone structure and adult facial proportions. ' +
-      'Prominent adult cheekbones, adult eye socket depth, full adult maturity.'
+      'Completely transform this child into a young adult Korean man. ' +
+      'ABSOLUTELY NO CHILD FEATURES. Complete loss of baby fat, sharp jawline, elongated adult face shape, ' +
+      'handsome youthful adult proportions. ' +
+      'Not middle-aged, just a fresh energetic young professional adult.'
     );
   }
   if (age <= 50) {

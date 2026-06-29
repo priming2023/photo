@@ -18,7 +18,7 @@ const FEMALE_AGE_DESCRIPTORS: Record<number, string> = {
 };
 
 const MALE_AGE_DESCRIPTORS: Record<number, string> = {
-  25: 'looks exactly 25 to 29 years old, fully grown adult Korean man NOT a child, complete loss of baby fat, strong masculine sharp jawline, handsome energetic professional, adult facial proportions',
+  25: 'looks exactly 25 to 29 years old, young adult Korean man, fully grown masculine face, complete loss of baby fat, strong sharp jawline, handsome energetic professional, energetic and youthful but NOT a child',
   35: 'looks exactly 35 to 39 years old, mature Korean man, well-defined masculine facial structure, rugged handsome adult, subtle signs of mature age, confident professional',
   45: 'looks exactly 45 to 49 years old, middle-aged Korean man, visible crow\'s feet, prominent nasolabial folds, slight loss of skin elasticity, masculine mature face, experienced look',
   55: 'looks exactly 50 to 54 years old, early fifties Korean man, natural expression lines on forehead, slight graying at temples, mature and dignified',
@@ -47,7 +47,7 @@ const FEMALE_PARAMS: Record<number, PulidParams> = {
 };
 
 const MALE_PARAMS: Record<number, PulidParams> = {
-  25: { id_weight: 0.70, start_step: 4, guidance_scale: 4.8 }, // 어른으로 오판되더라도 아이 골격을 완전히 깨버림
+  25: { id_weight: 0.70, start_step: 4, guidance_scale: 4.6 }, // 25세 요리사: 어른으로 오판되더라도 아이 골격을 깨버림. guidance를 4.6으로 살짝 낮춰 너무 인위적이지 않게 조절
   35: { id_weight: 0.80, start_step: 3, guidance_scale: 4.4 },
   45: { id_weight: 0.80, start_step: 3, guidance_scale: 4.4 },
   55: { id_weight: 0.78, start_step: 3, guidance_scale: 4.2 }, // 55세 덜 늙게 (id_weight 약간 상향, guidance 하향)
