@@ -104,20 +104,28 @@ export const detectSubjectAge = async (imageSrc: string): Promise<SubjectAgeCate
 export const getEffectiveAgeStr = (
   selectedAgeStr: string,
   subjectAge: SubjectAgeCategory,
-  gender: string = '남자',
+  _gender: string = '남자',
 ): string => {
   const selected = parseAgeNumber(selectedAgeStr);
   
-  if (subjectAge !== 'child') return selectedAgeStr;
+  if (subjectAge !== 'child') {
+    // 성인이라도 남자가 50세(구 55세), 60세(구 65세)를 선택하면 조금 덜 늙어 보이게 오프셋을 줌
+    if (_gender === '남자') {
+      if (selected === 50) return '47살';
+      if (selected === 60) return '55살';
+    }
+    return selectedAgeStr;
+  }
 
   let offset = 0;
-  if (selected === 25) {
-    // 25세 남자: 13살처럼 보이지 않도록 성인 신호 보강
-    offset = gender === '남자' ? 8 : 5;
-  } else if (selected === 35) {
-    offset = 10;
-  } else if (selected === 45) {
-    offset = 5;
+  if (selected === 30) {
+    offset = 15; // 구 35세 남자 타겟: 30+15=45 (과거 35세의 타겟 45와 동일하게 맞춤)
+  } else if (selected === 40) {
+    offset = 10; // 구 45세 타겟: 40+10=50 (과거 45세의 타겟 50과 동일)
+  } else if (selected === 50) {
+    offset = 5;  // 구 55세 타겟: 50+5=55 (과거 55세의 타겟 55와 동일)
+  } else if (selected === 60) {
+    offset = 5;  // 구 65세 타겟: 60+5=65 (과거 65세의 타겟 65와 동일)
   }
 
   const adjusted = Math.min(selected + offset, MAX_RENDER_AGE);
@@ -128,23 +136,21 @@ export const getEffectiveAgeStr = (
  * 어린이 감지 시 PuLID id_weight 보정.
  * - 여자: 사용자가 만족했던 기존 수치 그대로 (절대 변경 금지)
  * - 남자: "젊은 목표일수록 약하게, 늙은 목표일수록 강하게" 변형.
- *   25세 선택(표현 33세급)은 아이 얼굴과 가까운 청년이라 과하게 부수면 5살로 붕괴,
- *   너무 약하면 13살로 남으므로 -0.25(0.80→0.55)가 균형점.
  */
 export const getChildAgeWeightAdjust = (targetAgeStr: string, gender: string = '남자'): number => {
   const age = parseAgeNumber(targetAgeStr);
   if (gender === '여자') {
-    // 여자: 세션 전 만족했던 원래 수치 그대로 유지
-    if (age <= 40) return -0.40;
-    if (age <= 50) return -0.35;
-    if (age <= 60) return -0.30;
-    return -0.25;
+    // 여자: 세션 전 만족했던 원래 수치 그대로 유지되도록 타겟 구간 조정
+    if (age <= 30) return -0.40;
+    if (age <= 50) return -0.35; // 구 35(타겟45), 구 45(타겟50) 모두 -0.35 였음
+    if (age <= 60) return -0.30; // 구 55(타겟55) -0.30 였음
+    return -0.25;                // 구 65(타겟65) -0.25 였음
   }
-  // 남자 전용 튜닝
-  if (age <= 36) return -0.25; // 20대 청년 타겟: 아이 얼굴 닮음을 적당히 줄여 13살처럼 안 보이게 (0.80→0.55)
-  if (age <= 50) return -0.35; // 40대 타겟: 강하게 변형
-  if (age <= 60) return -0.30; // 50대 타겟
-  return -0.25;                // 60대 타겟
+  // 남자 
+  if (age <= 30) return -0.40; // 구 35세 남자 타겟과 동일
+  if (age <= 50) return -0.35; 
+  if (age <= 60) return -0.30; 
+  return -0.25;                
 };
 
 /** 어린이 감지 시 PuLID start_step 지연 (어른 형태를 먼저 잡고 나중에 얼굴 합성) */
@@ -152,13 +158,13 @@ export const getChildStartStepAdjust = (targetAgeStr: string, gender: string = '
   const age = parseAgeNumber(targetAgeStr);
   if (gender === '여자') {
     // 여자: 세션 전 만족했던 원래 수치 그대로 유지
-    if (age <= 40) return 6;
+    if (age <= 30) return 6;
     if (age <= 50) return 5;
     return 4;
   }
-  // 남자 전용 튜닝
-  if (age <= 36) return 1; // 청년 타겟: 얼굴 합성을 이르게 시작해 정체성 안정(아기 붕괴 방지)
-  if (age <= 50) return 5; // 40대 타겟: 늦게 합성해 골격 유지력 확보
+  // 남자 
+  if (age <= 30) return 6; // 구 35세 타겟과 동일하게 돌림 (어린이 감지 시 강력 변형)
+  if (age <= 50) return 5; 
   return 4;
 };
 
@@ -166,9 +172,8 @@ export const getChildStartStepAdjust = (targetAgeStr: string, gender: string = '
 export const getChildGrowthPrompt = (targetAgeStr: string, gender: string = '남자'): string => {
   const age = parseAgeNumber(targetAgeStr);
 
-  if (age <= 40) {
+  if (age <= 30) {
     if (gender === '여자') {
-      // 여자: 장기간 만족했던 원래 기준(1fef41e) 문구 그대로 복원 (성별 중립, 단어까지 동일)
       return (
         'Completely transform this child into a fully mature adult Korean. ' +
         'ABSOLUTELY NO CHILD FEATURES. Complete loss of baby fat, sharp adult jawline, elongated adult face shape, ' +
@@ -176,12 +181,11 @@ export const getChildGrowthPrompt = (targetAgeStr: string, gender: string = '남
         'Prominent adult cheekbones, adult eye socket depth, full adult maturity.'
       );
     }
-    // 남자: 13살처럼 안 보이게 성인 남성 강조
     return (
-      'Transform this child into a fully grown ADULT Korean man in his late twenties. ' +
-      'He is an ADULT MAN, absolutely NOT a child, NOT a baby, NOT a toddler, NOT a teenager, NOT a kid. ' +
-      'Complete loss of all baby fat, clearly defined adult jawline, elongated adult face shape, ' +
-      'mature adult bone structure and adult facial proportions of a confident man around 28 years old.'
+      'Completely transform this child into a fully mature adult Korean. ' +
+      'ABSOLUTELY NO CHILD FEATURES. Complete loss of baby fat, sharp adult jawline, elongated adult face shape, ' +
+      'mature adult bone structure and adult facial proportions. ' +
+      'Prominent adult cheekbones, adult eye socket depth, full adult maturity.'
     );
   }
   if (age <= 50) {

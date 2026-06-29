@@ -25,7 +25,7 @@ const JOBS = [
   { id: 'writer', name: '작가', icon: '✍️' },
 ];
 
-const AGES = ['25살', '35살', '45살', '55살', '65살'];
+const AGES = ['30살', '40살', '50살', '60살'];
 const GENDERS = ['남자', '여자'];
 
 const Selection: React.FC<SelectionProps> = ({ onComplete }) => {

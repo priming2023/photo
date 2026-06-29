@@ -1,6 +1,6 @@
 import { parseAgeNumber } from '../ageDescriptors';
 
-export type SnappedAge = 25 | 35 | 45 | 55 | 65;
+export type SnappedAge = 30 | 40 | 50 | 60;
 export type Seniority = 'junior' | 'mid' | 'senior';
 
 export interface JobPromptCtx {
@@ -8,10 +8,10 @@ export interface JobPromptCtx {
   age: SnappedAge;
 }
 
-const AGE_KEYS: SnappedAge[] = [25, 35, 45, 55, 65];
+const AGE_KEYS: SnappedAge[] = [30, 40, 50, 60];
 
 export const snapJobAge = (ageStr?: string): SnappedAge => {
-  const age = ageStr ? parseAgeNumber(ageStr) : 35;
+  const age = ageStr ? parseAgeNumber(ageStr) : 40;
   return AGE_KEYS.reduce((prev, cur) =>
     Math.abs(cur - age) < Math.abs(prev - age) ? cur : prev,
   );
@@ -20,8 +20,8 @@ export const snapJobAge = (ageStr?: string): SnappedAge => {
 export const isFemale = (gender: string): boolean => gender === '여자';
 
 export const seniority = (age: SnappedAge): Seniority => {
-  if (age <= 25) return 'junior';
-  if (age <= 45) return 'mid';
+  if (age <= 30) return 'junior';
+  if (age <= 40) return 'mid';
   return 'senior';
 };
 
