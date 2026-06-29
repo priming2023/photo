@@ -8,7 +8,6 @@ import {
 } from './eyewearDetection';
 import { JOB_NEGATIVES } from './occupationPrompts';
 import {
-  CHILD_APPEARANCE_AGE_OFFSET,
   detectSubjectAge,
   getChildAgeWeightAdjust,
   getEffectiveAgeStr,
@@ -79,7 +78,7 @@ export const generateTransformedImage = async (
   const renderAgeStr = getEffectiveAgeStr(ageStr, subjectAge);
   if (subjectAge === 'child' && renderAgeStr !== ageStr) {
     console.log(
-      `[Fal] 어린이 +${CHILD_APPEARANCE_AGE_OFFSET}살: 선택 ${ageStr} → AI ${renderAgeStr}`,
+      `[Fal] 어린이 보정: 선택 ${ageStr} → AI ${renderAgeStr}`,
     );
   }
 

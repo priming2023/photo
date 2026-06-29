@@ -6,9 +6,6 @@ import { parseAgeNumber } from './ageDescriptors';
 
 export type SubjectAgeCategory = 'child' | 'adult';
 
-/** 어린이(성인 아님) 판정 시 선택 나이에 더할 값 */
-export const CHILD_APPEARANCE_AGE_OFFSET = 10;
-
 const MAX_RENDER_AGE = 65;
 
 const loadImage = (src: string): Promise<HTMLImageElement> =>
@@ -96,7 +93,8 @@ export const detectSubjectAge = async (imageSrc: string): Promise<SubjectAgeCate
 /**
  * AI 변환 표현 나이
  * - 성인 판정: 선택 나이 그대로
- * - 어린이 판정: 선택 나이 + 10살 (최대 65살, 남녀 동일)
+ * - 어린이 판정: 기본적으로 +15살을 더해 확실히 나이 들게 표현 (25살 선택 → 40살 묘사)
+ *   단, 선택 나이가 35세 이상이면 너무 늙어 보이지 않게 보정폭을 줄임 (+10살, +5살)
  * - 영수증·UI는 선택 나이 유지
  */
 export const getEffectiveAgeStr = (
@@ -106,24 +104,32 @@ export const getEffectiveAgeStr = (
   if (subjectAge !== 'child') return selectedAgeStr;
 
   const selected = parseAgeNumber(selectedAgeStr);
-  const adjusted = Math.min(selected + CHILD_APPEARANCE_AGE_OFFSET, MAX_RENDER_AGE);
+  
+  let offset = 15;
+  if (selected >= 45) {
+    offset = 5;
+  } else if (selected >= 35) {
+    offset = 10;
+  }
+
+  const adjusted = Math.min(selected + offset, MAX_RENDER_AGE);
   return `${adjusted}살`;
 };
 
-/** 어린이 감지 시 PuLID id_weight 보정 (가벼운 수준) */
+/** 어린이 감지 시 PuLID id_weight 보정 (더 강하게 적용) */
 export const getChildAgeWeightAdjust = (targetAgeStr: string): number => {
   const age = parseAgeNumber(targetAgeStr);
-  if (age <= 25) return -0.06;
-  if (age <= 35) return -0.04;
-  if (age <= 45) return -0.01;
+  if (age <= 40) return -0.08;
+  if (age <= 50) return -0.05;
+  if (age <= 60) return -0.02;
   return 0;
 };
 
-/** 어린이 감지 시 성장 변환 문구 (targetAgeStr = effectiveAge, 이미 +10 반영) */
+/** 어린이 감지 시 성장 변환 문구 (targetAgeStr = effectiveAge, 이미 offset 반영) */
 export const getChildGrowthPrompt = (targetAgeStr: string): string => {
   const age = parseAgeNumber(targetAgeStr);
 
-  if (age <= 25) {
+  if (age <= 40) {
     return (
       'Transform this child into a fully grown Korean adult. ' +
       'Mature adult bone structure and facial proportions, ' +
@@ -131,7 +137,7 @@ export const getChildGrowthPrompt = (targetAgeStr: string): string => {
       'Adult jaw, adult nose bridge, adult eye socket depth.'
     );
   }
-  if (age <= 35) {
+  if (age <= 50) {
     return (
       'Transform childhood features into mature adult appearance. ' +
       'Fully developed adult Korean face, adult bone structure, ' +
