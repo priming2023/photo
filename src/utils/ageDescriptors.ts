@@ -10,11 +10,11 @@
 
 // ─── 나이별 시각 묘사 (성별 공통 베이스) ────────────────────────────────────
 const FEMALE_AGE_DESCRIPTORS: Record<number, string> = {
-  25: 'looks exactly 25 years old, young adult Korean woman, smooth firm skin, sharp clean jawline, vibrant bright eyes, flawless complexion, youthful professional',
-  35: 'looks exactly 35 years old, mature Korean woman in her mid-thirties, well-defined facial structure, complete loss of teenage baby fat, elegant mature face, sophisticated professional look NOT in 20s',
-  45: 'looks exactly 45 years old, middle-aged Korean woman in her mid-forties, visible fine lines around eyes, natural nasolabial folds, slight loss of skin elasticity, mature skin',
-  55: 'looks exactly 55 years old, older middle-aged Korean woman, prominent crow\'s feet and smile lines, visible skin aging, salt-and-pepper hair, realistic mature skin texture, no baby fat',
-  65: 'looks exactly 65 years old, dignified elderly Korean woman, natural deep wrinkles, pronounced nasolabial folds, realistic aged skin texture, mostly silver or gray hair, wise calm expression'
+  25: 'looks exactly 25 to 29 years old, young adult Korean woman, smooth firm skin, sharp clean jawline, vibrant bright eyes, mature professional look',
+  35: 'looks exactly 35 to 39 years old, mature Korean woman in her late thirties, complete loss of teenage baby fat, early signs of aging, very fine expression lines, realistic 30s adult skin texture NOT in 20s',
+  45: 'looks exactly 45 to 49 years old, middle-aged Korean woman in her late forties, visible crow\'s feet, natural expression lines on forehead, slight loss of skin elasticity, realistic mature 40s skin texture, signs of aging',
+  55: 'looks exactly 55 to 59 years old, older middle-aged Korean woman, prominent crow\'s feet and smile lines, visible skin aging, slight skin sagging, realistic mature 50s skin texture',
+  65: 'looks exactly 65 to 69 years old, dignified elderly Korean woman, natural deep wrinkles on forehead and eyes, pronounced nasolabial folds, realistic aged 60s skin texture, age spots, wise calm expression'
 };
 
 const MALE_AGE_DESCRIPTORS: Record<number, string> = {
@@ -109,9 +109,12 @@ export const buildNegativePrompt = (
   let tooOld = '';
 
   if (gender === '여자') {
-    // 여자는 너무 어려보이는 경향 방어
-    if (age >= 35) tooYoung = 'looks 20s, college student, teenage, baby face, chubby cheeks, overly youthful';
-    if (age >= 45) tooYoung += ', looks 30s, flawless skin, no wrinkles';
+    // 여자는 너무 어려보이는 피부 경향 강력 방어
+    if (age >= 25) tooYoung = 'looks like a teenager, high school student, young girl, child, kid, baby face, chubby cheeks';
+    if (age >= 35) tooYoung += ', looks 20s, college student, overly youthful, flawless porcelain skin, airbrushed skin';
+    if (age >= 45) tooYoung += ', looks 30s, flawless skin, no wrinkles, smooth face, young skin';
+    if (age >= 55) tooYoung += ', looks 40s, youthful glowing skin, anti-aging filter, tight skin';
+    if (age >= 65) tooYoung += ', looks 50s, smooth skin without wrinkles';
   } else {
     // 25세 남자는 너무 어려보이는 경향을 아주 강력하게 방어
     if (age <= 30) tooYoung = 'baby, infant, toddler, preschooler, looks like a teenager, boy, child, kid, baby face, high school student, chubby cheeks, youthful, preteen, middle school student, 13 year old, young teenager, round childish face';
