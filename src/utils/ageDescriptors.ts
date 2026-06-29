@@ -18,11 +18,11 @@ const FEMALE_AGE_DESCRIPTORS: Record<number, string> = {
 };
 
 const MALE_AGE_DESCRIPTORS: Record<number, string> = {
-  25: 'looks exactly 25 years old, adult Korean man, fully grown masculine face, loss of baby fat, sharp jawline, energetic professional',
-  35: 'looks exactly 35 years old, mature Korean man in his mid-thirties, healthy clear adult skin, visible facial structure, masculine look, confident professional', // 너무 어리지 않도록 youthful 제거, faint smile lines 추가
-  45: 'looks exactly 45 years old, middle-aged Korean man in his mid-forties, subtle crow\'s feet, natural nasolabial folds, masculine mature face, experienced look',
-  55: 'looks exactly 55 years old, older middle-aged Korean man, visible natural wrinkles on forehead and around mouth, graying hair at temples, weathered skin',
-  65: 'looks exactly 65 years old, elderly Korean man, deep natural wrinkles, realistic aged skin texture, mostly silver or gray hair, distinguished senior'
+  25: 'looks exactly 25 to 29 years old, adult Korean man, fully grown masculine face, complete loss of baby fat, strong sharp jawline, handsome energetic professional',
+  35: 'looks exactly 35 to 39 years old, mature Korean man, well-defined masculine facial structure, rugged handsome adult, subtle signs of mature age, confident professional',
+  45: 'looks exactly 45 to 49 years old, middle-aged Korean man, visible crow\'s feet, prominent nasolabial folds, slight loss of skin elasticity, masculine mature face, experienced look',
+  55: 'looks exactly 55 to 59 years old, older middle-aged Korean man, deep natural wrinkles on forehead and around mouth, sagging jawline, salt-and-pepper hair, weathered masculine skin',
+  65: 'looks exactly 65 to 69 years old, elderly Korean man, very deep natural wrinkles, realistic aged skin texture, hollow cheeks, mostly silver or gray hair, distinguished senior'
 };
 
 export interface PulidParams {
@@ -48,10 +48,10 @@ const FEMALE_PARAMS: Record<number, PulidParams> = {
 
 const MALE_PARAMS: Record<number, PulidParams> = {
   25: { id_weight: 0.95, start_step: 2, guidance_scale: 3.5 },
-  35: { id_weight: 0.92, start_step: 2, guidance_scale: 3.8 },
-  45: { id_weight: 0.82, start_step: 3, guidance_scale: 4.2 },
-  55: { id_weight: 0.70, start_step: 4, guidance_scale: 4.6 },
-  65: { id_weight: 0.58, start_step: 5, guidance_scale: 5.0 },
+  35: { id_weight: 0.90, start_step: 2, guidance_scale: 4.0 },
+  45: { id_weight: 0.80, start_step: 3, guidance_scale: 4.4 },
+  55: { id_weight: 0.70, start_step: 4, guidance_scale: 4.8 },
+  65: { id_weight: 0.58, start_step: 5, guidance_scale: 5.2 },
 };
 
 export const getPulidParams = (ageStr: string, gender: string): PulidParams => {
@@ -115,12 +115,15 @@ export const buildNegativePrompt = (
   } else {
     // 남자는 너무 어려보이는 경향을 아주 강력하게 방어
     if (age >= 25) tooYoung = 'looks like a teenager, boy, child, kid, baby face, high school student, chubby cheeks';
-    if (age >= 35) tooYoung += ', looks 20s, college student, young boy, flawless skin, youth';
+    if (age >= 35) tooYoung += ', looks 20s, college student, young boy, youth';
+    if (age >= 45) tooYoung += ', looks 30s, youthful skin, no wrinkles, smooth face';
+    if (age >= 55) tooYoung += ', looks 40s, dark hair only';
     
     // 남자는 너무 늙어보이는 경향 방어 완화 (제 나이 찾기)
     if (age <= 25) tooOld = 'looks 40s, middle-aged, aged skin, heavy stubble, old man';
-    // 35세 남자는 너무 늙어보이는 방어(tooOld)를 완전히 해제하여 자연스러운 수염과 주름이 나오게 허용
+    else if (age <= 35) tooOld = 'looks 50s, completely white hair, elderly';
     else if (age <= 45) tooOld = 'looks 60s, deep wrinkles, completely white hair';
+    else if (age <= 55) tooOld = 'looks 70s, extremely old, frail, decrepit';
   }
 
   let result = NEGATIVE_BASE;
@@ -164,11 +167,11 @@ export const getGenderAgeStyle = (gender: string, age: number): string => {
   }
 
   switch (snapped) {
-    case 25: return 'neat dark hair, masculine adult face, no baby fat, mature jawline'; // clean-shaven을 빼서 자연스러운 성인 남성의 느낌 허용
-    case 35: return 'neat dark hair, mature professional look, faint stubble allowed, masculine features'; // clean-shaven 빼고 수염(stubble) 허용
-    case 45: return 'mostly dark hair, gray strands at temples, mature look, light beard shadow allowed'; 
-    case 55: return 'salt-and-pepper hair, gray temples, visible forehead lines, mature masculine';
-    case 65: return 'mostly gray or silver hair, gray beard stubble optional, weathered mature face, distinguished elder';
+    case 25: return 'neat dark hair, masculine adult face, no baby fat, strong jawline'; 
+    case 35: return 'neat dark hair, mature professional look, light stubble allowed, masculine features'; 
+    case 45: return 'mostly dark hair, gray strands at temples, mature look, masculine facial hair allowed'; 
+    case 55: return 'salt-and-pepper hair, gray temples, visible forehead lines, mature masculine, skin aging';
+    case 65: return 'mostly gray or silver hair, weathered mature face, distinguished elder, facial wrinkles';
     default: return 'neat groomed hair';
   }
 };
