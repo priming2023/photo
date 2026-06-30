@@ -136,7 +136,7 @@ const Result: React.FC<ResultProps> = ({
       </div>
 
       <div className="flex flex-col items-center justify-center bg-gray-50 p-6 lg:p-8 rounded-3xl lg:rounded-[3rem] lg:h-full shadow-inner border border-gray-200 relative shrink-0">
-        <h3 className="text-base lg:text-xl font-bold text-gray-400 mb-4 lg:mb-6">인쇄 미리보기 (203 DPI)</h3>
+        <h3 className="text-base lg:text-xl font-bold text-gray-400 mb-4 lg:mb-6">인쇄 미리보기 (꿈을 이룬 내 모습)</h3>
 
         <div className="relative shadow-[10px_10px_30px_rgba(0,0,0,0.15)] border border-gray-300 bg-white w-[260px] h-[420px] sm:w-[300px] sm:h-[485px] lg:w-[341px] lg:h-[550px]">
           {printPreviewUrl ? (

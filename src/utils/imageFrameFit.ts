@@ -16,8 +16,8 @@ export interface FrameFitRect {
   drawH: number;
 }
 
-/** 영수증 — AI 미래 사진 (가로형 사진이므로 위아래 거의 안 잘림, 기본값 복원) */
-export const FUTURE_PHOTO_COVER: CoverYBiasOptions = { yBias: 0.0, widthScale: 1.0 }; // 가로 꽉 채움
+/** 영수증 — AI 미래 사진 (가로 꽉 채우되 살짝 아래로 내려 머리카락 잘림 방지) */
+export const FUTURE_PHOTO_COVER: CoverYBiasOptions = { yBias: 0.06, widthScale: 1.0 }; // 가로 꽉 채움 + 아주 조금 아래로
 
 /** 영수증 — 웹캠 현재 사진 */
 export const CURRENT_PHOTO_COVER: CoverYBiasOptions = { yBias: 0.0, widthScale: 1.0 }; // 가로 꽉 채움

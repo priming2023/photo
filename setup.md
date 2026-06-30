@@ -5,6 +5,157 @@
 
 ---
 
+## 0. 처음부터 끝까지 — GitHub에서 받아 영수증 사진기에 설치 (전체 순서)
+
+> 이 장은 **개발자 PC에서 설치 파일(.exe)을 만들고**, 그 파일을 **실제 매장 영수증 사진기(키오스크 PC)에 설치**하기까지의 모든 명령어와 행동을 순서대로 정리한 것입니다.  
+> A 단계(빌드)는 개발자 PC에서, B 단계(설치)는 매장 사진기에서 진행합니다.
+
+### A. 개발자 PC — 소스 받아서 설치 파일 만들기
+
+#### A-1. 필수 프로그램 설치 (최초 1회)
+
+| 프로그램 | 설치 방법 | 확인 명령 |
+|---|---|---|
+| **Git** | <https://git-scm.com/downloads> | `git --version` |
+| **Node.js LTS (20+)** | <https://nodejs.org> 에서 LTS 설치 | `node -v` / `npm -v` |
+
+```bash
+# 세 명령 모두 버전이 출력되면 준비 완료
+git --version
+node -v
+npm -v
+```
+
+#### A-2. GitHub 저장소 클론
+
+```bash
+# 원하는 폴더로 이동 후 클론
+git clone https://github.com/priming2023/photo.git
+cd photo
+```
+
+> 이미 받아둔 경우 최신화만 합니다.
+> ```bash
+> cd photo
+> git pull origin main
+> ```
+
+#### A-3. 의존성 설치
+
+```bash
+npm install
+```
+
+#### A-4. 환경변수 파일(.env) 작성
+
+```bash
+# 예시 파일을 복사한 뒤 값 채우기
+cp .env.example .env
+```
+
+`.env`를 열어 아래 값을 채웁니다. (자세한 항목은 2-2 참고)
+
+```env
+VITE_FAL_KEY=발급받은_Fal_키
+VITE_SUPABASE_URL=https://프로젝트.supabase.co
+VITE_SUPABASE_ANON_KEY=발급받은_anon_키
+VITE_PUBLIC_APP_URL=https://phto-orcin.vercel.app
+PRINTER_NAME=                # 빌드 단계에서는 비워둬도 됨
+```
+
+#### A-5. (선택) 실행 테스트
+
+```bash
+# 브라우저 + Electron 키오스크가 함께 떠서 동작 확인
+npm run electron:start
+```
+
+#### A-6. 설치 파일(.exe / .dmg) 빌드
+
+```bash
+# dist/ 생성 + 설치 파일 생성 (결과물은 release/ 폴더)
+npm run electron:build
+```
+
+> **중요:** 매장 사진기가 **Windows**라면, 빌드도 **Windows PC에서** 실행해야 `.exe`가 만들어집니다.  
+> (macOS에서 빌드하면 `.dmg`만 생성됩니다. 윈도우용 크로스 빌드는 별도 설정 필요)
+
+빌드 후 `release/` 폴더에서 설치 파일을 확인합니다.
+
+| 매장 사진기 OS | 매장에 전달할 파일 |
+|---|---|
+| Windows | `release/월드킹 포토부스 Setup.exe` |
+| macOS | `release/월드킹 포토부스.dmg` |
+
+#### A-7. 매장으로 전달할 파일 2개 준비
+
+USB 또는 클라우드로 아래 **2개**를 매장 사진기로 복사합니다.
+
+1. 설치 파일 (`월드킹 포토부스 Setup.exe`)
+2. `.env` 파일 (매장용 `PRINTER_NAME`이 들어갈 파일 — B-3에서 작성)
+
+---
+
+### B. 매장 영수증 사진기(키오스크 PC) — 설치 및 가동
+
+#### B-1. 영수증 프린터 연결 및 드라이버 설치
+
+1. 80mm 영수증 프린터를 USB로 사진기 PC에 연결합니다.
+2. 제조사 드라이버를 설치합니다. (예: EPSON TM-T20, 빅솔론 SRP 등)
+3. Windows `설정 → Bluetooth 및 장치 → 프린터 및 스캐너`에서 프린터가 보이는지 확인합니다.
+4. **프린터 이름을 정확히 메모**합니다. (예: `EPSON TM-T20II Receipt`)
+5. 80mm 용지 폭으로 테스트 인쇄가 되는지 확인합니다.
+
+> 프린터 정확한 이름 확인(명령으로도 가능):
+> ```powershell
+> # Windows PowerShell
+> Get-Printer | Select-Object Name
+> ```
+
+#### B-2. 설치 파일 실행
+
+1. A-7에서 받은 `월드킹 포토부스 Setup.exe`를 더블클릭합니다.
+2. 설치가 끝나면 자동으로 앱이 실행됩니다. (oneClick 설치)
+
+#### B-3. .env 파일 배치 (프린터 이름 입력)
+
+설치된 **실행 파일(.exe)이 있는 폴더**에 `.env` 파일을 둡니다.
+
+- 기본 설치 경로(Windows oneClick):  
+  `C:\Users\<사용자명>\AppData\Local\Programs\월드킹 포토부스\`
+
+`.env` 내용 (B-1에서 메모한 프린터 이름 입력):
+
+```env
+VITE_PUBLIC_APP_URL=https://phto-orcin.vercel.app
+PRINTER_NAME=EPSON TM-T20II Receipt
+# 인터넷이 불안정한 매장이면 아래 주석 해제 (로컬 dist 사용)
+# ELECTRON_USE_LOCAL=true
+```
+
+> 앱을 한 번 종료 후 다시 실행해야 `.env`가 적용됩니다. (`Ctrl+Shift+X`로 종료)
+
+#### B-4. 카메라 권한 허용
+
+1. 웹캠을 USB로 연결합니다.
+2. 앱 실행 시 카메라 권한 요청이 나오면 **허용**합니다. (Electron이 자동 허용 처리)
+3. 미리보기 화면에 카메라 영상이 보이는지 확인합니다.
+
+#### B-5. 최종 점검 (실제 1회 촬영)
+
+1. 직업·나이·성별 선택 → 촬영 진행
+2. AI 변환 결과(컬러 미래 사진)가 나오는지 확인
+3. **영수증 인쇄하기** 버튼 → 80mm 영수증이 정상 출력되는지 확인
+4. 영수증의 QR을 휴대폰으로 스캔 → 사진 페이지가 열리는지 확인
+
+#### B-6. 자동 시작 / 자동 업데이트
+
+- **자동 시작:** Windows 부팅 시 앱이 자동 실행되도록 자동 등록됩니다. (별도 설정 불필요)
+- **자동 업데이트:** 개발자가 GitHub Release를 올리면 매장 앱이 자동으로 내려받아 다음 실행 시 적용됩니다.
+- **키오스크 잠금:** 평상시 전체화면 키오스크로 잠깁니다. 관리가 필요할 땐 `Ctrl+Shift+Q`로 해제 (단축키는 2-6 참고).
+
+---
+
 ## 1. 웹앱 접속 (브라우저 / PWA)
 
 ### 브라우저에서 바로 사용
@@ -187,4 +338,4 @@ VITE_PUBLIC_APP_URL
 
 ---
 
-*마지막 업데이트: 2026-06-24*
+*마지막 업데이트: 2026-06-30*
