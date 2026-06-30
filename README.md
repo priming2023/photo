@@ -44,23 +44,18 @@ cd photo
 npm install
 ```
 
-### 3. 환경변수 설정
+### 3. 환경변수
 
-```bash
-cp .env.example .env
-```
+클론하면 **`.env`가 이미 포함**되어 있습니다. 별도 설정 없이 바로 실행·빌드할 수 있습니다.
 
-`.env`를 열어 본인 키를 채웁니다. 발급처는 `.env.example` 주석을 참고하세요.
-
-| 변수 | 설명 | 발급처 |
+| 변수 | 설명 | 비고 |
 |---|---|---|
-| `VITE_FAL_KEY` | AI 사진 변환 API 키 | [fal.ai](https://fal.ai) → Keys |
-| `VITE_SUPABASE_URL` | Supabase 프로젝트 URL | Supabase → Project Settings → API |
-| `VITE_SUPABASE_ANON_KEY` | Supabase anon 키 | Supabase → Project Settings → API |
-| `VITE_PUBLIC_APP_URL` | QR 링크용 공개 앱 URL | 배포 도메인 |
-| `PRINTER_NAME` | 영수증 프린터 이름 (매장 PC 전용) | Windows 장치 관리자 |
+| `VITE_FAL_KEY` | AI 사진 변환 API 키 | 저장소에 포함됨 |
+| `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` | 사진 업로드·QR | 저장소에 포함됨 |
+| `VITE_PUBLIC_APP_URL` | QR 링크용 공개 앱 URL | Vercel 배포 주소 |
+| `PRINTER_NAME` | 영수증 프린터 이름 | **매장 PC 설치 시** 장치 관리자 이름으로 채움 |
 
-> ⚠️ `.env`는 비밀키를 포함하므로 **절대 커밋하지 마세요.** (`.gitignore`에 이미 등록됨)
+> 매장 키오스크에 설치할 때는 `setup.md` **B-3** 절을 따라 exe 옆 `.env`에 `PRINTER_NAME`만 추가하면 됩니다.
 
 ### 4. 실행
 
@@ -82,7 +77,8 @@ npm run electron:build:mac # macOS 설치파일(.dmg)
 
 빌드 결과물은 `release/` 폴더에 생성됩니다.
 
-> 📖 **매장 키오스크 설치, 자동 업데이트, Vercel 배포 등 전체 운영 가이드는 [`setup.md`](./setup.md)를 참고하세요.**
+> 📖 **설치파일 만들기 → 매장 PC 설치 → 배송까지 전체 순서는 [`setup.md`](./setup.md) 0장을 따르세요.**  
+> Windows에서는 `scripts/windows-build.bat` 더블클릭만으로 `.exe` 빌드가 가능합니다.
 
 ---
 

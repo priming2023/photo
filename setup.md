@@ -5,6 +5,32 @@
 
 ---
 
+## 개발자 인수인계 (설치·배송 담당자용)
+
+아래만 있으면 **클론 → 빌드 → 매장 PC 설치 → 배송**까지 진행할 수 있습니다.
+
+| 항목 | 위치 | 상태 |
+|---|---|---|
+| 소스코드 | `https://github.com/priming2023/photo` | ✅ 협력자 초대 후 clone |
+| API 키·환경변수 | 저장소 루트 `.env` | ✅ 포함됨 (별도 전달 불필요) |
+| 설치 가이드 | 이 파일 (`setup.md`) | ✅ 0장부터 순서대로 |
+| Windows 원클릭 빌드 | `scripts/windows-build.bat` | ✅ 더블클릭 → `release/*.exe` |
+| DB/스토리지 SQL | `supabase/*.sql` | ✅ 이미 운영 중 (재실행 불필요) |
+| 웹앱 배포 | `https://phto-orcin.vercel.app` | ✅ 이미 배포됨 |
+
+**담당 개발자가 할 일 (요약)**
+
+1. 저장소 clone → `npm install` (또는 `scripts/windows-build.bat` 실행)
+2. `npm run electron:build:win` 으로 설치파일 생성
+3. 매장 키오스크 PC에 `.exe` 설치
+4. exe 옆 `.env`에 `PRINTER_NAME=프린터이름` 입력 (B-3 참고)
+5. 테스트 촬영 1회 (AI 변환 · 영수증 · QR 확인)
+6. 완성된 PC 배송
+
+**코드 수정**은 `src/`(화면·AI 프롬프트), `electron/`(프린터·키오스크), `src/config/store.ts`(매장명)에서 가능합니다. 수정 후 다시 빌드하면 됩니다.
+
+---
+
 ## 0. 처음부터 끝까지 — GitHub에서 받아 영수증 사진기에 설치 (전체 순서)
 
 > 이 장은 **개발자 PC에서 설치 파일(.exe)을 만들고**, 그 파일을 **실제 매장 영수증 사진기(키오스크 PC)에 설치**하기까지의 모든 명령어와 행동을 순서대로 정리한 것입니다.  

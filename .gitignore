@@ -7,9 +7,9 @@ dist/
 vite.config.d.ts
 vite.config.js
 
-# Environment (secrets)
-.env
+# Environment — .env는 저장소에 포함 (협력 개발자 접근용)
 .env.*
+!.env
 !.env.example
 
 # OS / IDE
