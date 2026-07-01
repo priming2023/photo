@@ -80,6 +80,8 @@ npm run electron:build:mac # macOS 설치파일(.dmg)
 > 📖 **설치파일 만들기 → 매장 PC 설치 → 배송까지 전체 순서는 [`setup.md`](./setup.md) 0장을 따르세요.**  
 > Windows에서는 `scripts/windows-build.bat` 더블클릭만으로 `.exe` 빌드가 가능합니다.
 
+> 🎬 **키즈카페 홍보 릴스 3편** (대본·촬영·편집·업로드 가이드): [`promo/README.md`](./promo/README.md)
+
 ---
 
 ## 🗄 Supabase 초기 설정
